@@ -9,12 +9,12 @@
       "include",
       "-c",
       "-o",
-      "build/main.o",
-      "src/main.c"
+      "build/expression_tree.o",
+      "src/expression_tree.c"
     ],
     "directory": "/mnt/c/Users/kams2/Projects/c/calculator",
-    "file": "/mnt/c/Users/kams2/Projects/c/calculator/src/main.c",
-    "output": "/mnt/c/Users/kams2/Projects/c/calculator/build/main.o"
+    "file": "/mnt/c/Users/kams2/Projects/c/calculator/src/expression_tree.c",
+    "output": "/mnt/c/Users/kams2/Projects/c/calculator/build/expression_tree.o"
   },
   {
     "arguments": [
@@ -26,12 +26,12 @@
       "include",
       "-c",
       "-o",
-      "build/parse_tree.o",
-      "src/parse_tree.c"
+      "build/main.o",
+      "src/main.c"
     ],
     "directory": "/mnt/c/Users/kams2/Projects/c/calculator",
-    "file": "/mnt/c/Users/kams2/Projects/c/calculator/src/parse_tree.c",
-    "output": "/mnt/c/Users/kams2/Projects/c/calculator/build/parse_tree.o"
+    "file": "/mnt/c/Users/kams2/Projects/c/calculator/src/main.c",
+    "output": "/mnt/c/Users/kams2/Projects/c/calculator/build/main.o"
   },
   {
     "arguments": [

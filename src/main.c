@@ -1,5 +1,5 @@
 #include "dynamic_array.h"
-#include "parse_tree.h"
+#include "expression_tree.h"
 #include "string_view.h"
 #include "tokenization.h"
 
@@ -46,10 +46,10 @@ int main(int argc, char *argv[]) {
 	}
 
 	fputs("ANSWER: ", stdout);
-	if ((fmod(final_num, 1.0)) <= DBL_EPSILON) {
+	if (fabs((fmod(final_num, 1.0))) <= DBL_EPSILON) {
 		printf("%.0f\n", final_num);
 	} else {
-		printf("%.3f\n", final_num);
+		printf("%.*f\n", 3, final_num);
 	}
 
 cleanup_final_num:
