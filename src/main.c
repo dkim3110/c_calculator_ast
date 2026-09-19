@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
 	int result = EXIT_SUCCESS;
 
 	if (argc < 2) {
-		fputs("CALCULATION FAILURE\n", stderr);
+		fputs("NOTHING TO CALCULATE\n", stderr);
 		exit(EXIT_FAILURE);
 	}
 
