@@ -7,16 +7,11 @@
 
 static inline int get_precedence(token_type type) {
 	switch (type) {
-		case ADD:
-			return 1;
-		case MULT:
-			return 2;
-		case EXP:
-			return 3;
-		case OP_PAREN:
-			return 0;
-		default:
-			return 0;
+		case ADD:			 return 1;
+		case MULT:		 return 2;
+		case EXP:			 return 3;
+		case OP_PAREN: return 0;
+		default:			 return 0;
 	}
 }
 
@@ -101,9 +96,8 @@ node_t *create_tree(dyn_token_t *tokens) {
 		arr_push(node_stack, op_node);
 	}
 
-	if (arr_len(node_stack) > 0) {
-		root = node_stack[0];
-	}
+	if (arr_len(node_stack) == 1) root = node_stack[0];
+	else fputs("INVALID SYNTAX\n", stderr);
 
 end_create_tree:
 	arr_free(node_stack);
@@ -121,17 +115,19 @@ double solve_tree(node_t *root) {
 
 	switch (root->token.type) {
 		case ADD:
-			if (root->token.val.data[0] == '+') return left_val + right_val;
-			if (root->token.val.data[0] == '-') return left_val - right_val;
+			switch (root->token.val.data[0]) {
+				case '+': return left_val + right_val;
+				case '-': return left_val - right_val;
+			}
 			break;
 		case MULT:
-			if (root->token.val.data[0] == '*') return left_val * right_val;
-			if (root->token.val.data[0] == '/') return left_val / right_val;
+			switch (root->token.val.data[0]) {
+				case '*': return left_val * right_val;
+				case '/': return left_val / right_val;
+			}
 			break;
-		case EXP:
-			return pow(left_val, right_val);
-		default:
-			return NAN;
+		case EXP: return pow(left_val, right_val);
+		default:	return NAN;
 	}
 
 	return NAN;
