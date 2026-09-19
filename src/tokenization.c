@@ -82,6 +82,21 @@ dyn_token_t *tokenize(str source) {
 				break;
 		}
 
+		size_t t_len = arr_len(tokens);
+		if (t_len > 0) {
+			token_type prev_type = tokens[t_len - 1].type;
+
+			bool implicit_mult = false;
+			if ((prev_type == NUMBER) && (token.type == OP_PAREN)) implicit_mult = true;
+			if ((prev_type == CL_PAREN) && (token.type == OP_PAREN)) implicit_mult = true;
+			if ((prev_type == CL_PAREN) && (token.type == NUMBER)) implicit_mult = true;
+
+			if (implicit_mult) {
+				token_t mult_tok = {.type = MULT, .val = (str){.data = "*", .len = 1}};
+				arr_push(tokens, mult_tok);
+			}
+		}
+
 		arr_push(tokens, token);
 	}
 	return tokens;
