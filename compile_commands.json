@@ -1,0 +1,36 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-O1",
+      "-Wall",
+      "-Wextra",
+      "-I",
+      "include",
+      "-c",
+      "-o",
+      "build/main.o",
+      "src/main.c"
+    ],
+    "directory": "/mnt/c/Users/kams2/Projects/c/calculator",
+    "file": "/mnt/c/Users/kams2/Projects/c/calculator/src/main.c",
+    "output": "/mnt/c/Users/kams2/Projects/c/calculator/build/main.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-O1",
+      "-Wall",
+      "-Wextra",
+      "-I",
+      "include",
+      "-c",
+      "-o",
+      "build/tokenization.o",
+      "src/tokenization.c"
+    ],
+    "directory": "/mnt/c/Users/kams2/Projects/c/calculator",
+    "file": "/mnt/c/Users/kams2/Projects/c/calculator/src/tokenization.c",
+    "output": "/mnt/c/Users/kams2/Projects/c/calculator/build/tokenization.o"
+  }
+]
