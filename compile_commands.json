@@ -26,6 +26,23 @@
       "include",
       "-c",
       "-o",
+      "build/parse_tree.o",
+      "src/parse_tree.c"
+    ],
+    "directory": "/mnt/c/Users/kams2/Projects/c/calculator",
+    "file": "/mnt/c/Users/kams2/Projects/c/calculator/src/parse_tree.c",
+    "output": "/mnt/c/Users/kams2/Projects/c/calculator/build/parse_tree.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-O1",
+      "-Wall",
+      "-Wextra",
+      "-I",
+      "include",
+      "-c",
+      "-o",
       "build/tokenization.o",
       "src/tokenization.c"
     ],

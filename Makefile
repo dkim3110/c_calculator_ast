@@ -2,20 +2,25 @@
 CC := gcc
 SRCDIR := src
 BUILDDIR := build
-TARGET := calc
+TESTDIR := tests
+TARGET := bin/calc
+TESTTARGET := bin/tester
 SRCEXT := c
 SOURCES := $(shell find $(SRCDIR) -type f -name '*.$(SRCEXT)')
+TESTSOURCES := $(wildcard $(TESTDIR)/*.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
 DEPS := $(OBJECTS:.o=.d)
+LIBOBJECTS := $(filter-out $(BUILDDIR)/main.o,$(OBJECTS))
 CFLAGS := -O1 -Wall -Wextra
+LIB := -L lib -lm
 INC := -I include
-LDLIBS := -lm
 
 all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
 	@echo " Linking..."
-	@$(CC) $^ -o $@ $(LDLIBS)
+	@mkdir -p $(dir $@)
+	@$(CC) $^ -o $@ $(LIB)
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@echo " Building..."
@@ -29,8 +34,18 @@ debug:
 clean:
 	@echo " Cleaning..."
 	@find $(BUILDDIR) -type f -delete
-	@$(RM) $(TARGET)
+	@$(RM) $(TARGET) $(TESTTARGET)
+
+$(TESTTARGET): $(TESTSOURCES) $(LIBOBJECTS)
+	@echo " Building tests..."
+	@mkdir -p $(dir $@)
+	@$(CC) $(CFLAGS) $(INC) $^ -o $@ $(LIB)
+
+test: $(TESTTARGET)
+	@echo " Running tests..."
+	@echo " "
+	@./$(TESTTARGET)
 
 -include $(DEPS)
 
-.PHONY: all clean debug
+.PHONY: all clean debug test
