@@ -1,5 +1,6 @@
 #include "dynamic_array.h"
 #include "expression_tree.h"
+#include "mem_arena.h"
 #include "string_view.h"
 #include "tokenization.h"
 
@@ -12,6 +13,12 @@ int main(int argc, char *argv[]) {
 	int result = EXIT_SUCCESS;
 
 	if (argc < 2) {
+		fputs("NOTHING TO CALCULATE\n", stderr);
+		exit(EXIT_FAILURE);
+	}
+
+	mem_arena *perm_arena = arena_init(MiB(1));
+	if (!perm_arena) {
 		fputs("NOTHING TO CALCULATE\n", stderr);
 		exit(EXIT_FAILURE);
 	}
@@ -32,7 +39,7 @@ int main(int argc, char *argv[]) {
 		goto cleanup_token;
 	}
 
-	node_t *root = create_tree(tokens);
+	node_t *root = create_tree(tokens, perm_arena);
 	if (!root) {
 		result = EXIT_FAILURE;
 		goto cleanup_root;
@@ -53,7 +60,7 @@ int main(int argc, char *argv[]) {
 	}
 
 cleanup_final_num:
-	free_tree(root);
+	arena_destroy(perm_arena);
 cleanup_root:
 	arr_free(tokens);
 cleanup_token:

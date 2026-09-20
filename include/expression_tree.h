@@ -1,6 +1,7 @@
 #ifndef EXPRESSION_TREE_H_
 #define EXPRESSION_TREE_H_
 
+#include "mem_arena.h"
 #include "tokenization.h"
 
 typedef struct node {
@@ -11,7 +12,7 @@ typedef struct node {
 
 typedef node_t dyn_node_t;
 
-extern node_t *create_tree(dyn_token_t *tokens);
+extern node_t *create_tree(dyn_token_t *tokens, mem_arena *arena);
 extern void free_tree(node_t *root);
 extern double solve_tree(node_t *root);
 

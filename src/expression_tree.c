@@ -1,5 +1,6 @@
 #include "expression_tree.h"
 #include "dynamic_array.h"
+#include "mem_arena.h"
 #include "tokenization.h"
 
 #include <math.h>
@@ -15,9 +16,9 @@ static inline int get_precedence(token_type type) {
 	}
 }
 
-static inline node_t *create_node(token_t token) {
+static inline node_t *create_node(token_t token, mem_arena *arena) {
 	if (token_equals(token, NULL_TOKEN)) return NULL;
-	node_t *node = (node_t *)malloc(sizeof(node_t));
+	node_t *node = (node_t *)arena_alloc(arena, sizeof(node_t));
 	if (!node) return NULL;
 
 	node->token = token;
@@ -27,7 +28,7 @@ static inline node_t *create_node(token_t token) {
 	return node;
 }
 
-node_t *create_tree(dyn_token_t *tokens) {
+node_t *create_tree(dyn_token_t *tokens, mem_arena *arena) {
 	dyn_node_t **node_stack = NULL;
 	dyn_token_t *op_stack = NULL;
 	node_t *root = NULL;
@@ -41,12 +42,12 @@ node_t *create_tree(dyn_token_t *tokens) {
 		}
 
 		if ((curr_tok.type == ADD) && ((n == 0) || (tokens[n - 1].type == OP_PAREN))) {
-			node_t *zero_node = create_node((token_t){.type = NUMBER, .val = (str){.data = "0", .len = 1}});
+			node_t *zero_node = create_node((token_t){.type = NUMBER, .val = (str){.data = "0", .len = 1}}, arena);
 			if (zero_node) arr_push(node_stack, zero_node);
 		}
 
 		if (curr_tok.type == NUMBER) {
-			node_t *num_node = create_node(curr_tok);
+			node_t *num_node = create_node(curr_tok, arena);
 			if (num_node) arr_push(node_stack, num_node);
 		} else if (curr_tok.type == OP_PAREN) {
 			arr_push(op_stack, curr_tok);
@@ -60,7 +61,7 @@ node_t *create_tree(dyn_token_t *tokens) {
 				}
 
 				arr_pop(op_stack);
-				node_t *op_node = create_node(top_op);
+				node_t *op_node = create_node(top_op, arena);
 				op_node->right = arr_pop(node_stack);
 				op_node->left = arr_pop(node_stack);
 				arr_push(node_stack, op_node);
@@ -74,7 +75,7 @@ node_t *create_tree(dyn_token_t *tokens) {
 				if (!should_pop) break;
 
 				arr_pop(op_stack);
-				node_t *op_node = create_node(top_op);
+				node_t *op_node = create_node(top_op, arena);
 
 				op_node->right = arr_pop(node_stack);
 				op_node->left = arr_pop(node_stack);
@@ -88,7 +89,7 @@ node_t *create_tree(dyn_token_t *tokens) {
 
 	while (arr_len(op_stack) > 0) {
 		token_t top_op = arr_pop(op_stack);
-		node_t *op_node = create_node(top_op);
+		node_t *op_node = create_node(top_op, arena);
 
 		op_node->right = arr_pop(node_stack);
 		op_node->left = arr_pop(node_stack);
@@ -131,18 +132,4 @@ double solve_tree(node_t *root) {
 	}
 
 	return NAN;
-}
-
-static inline void free_node(node_t *node) {
-	if (!node) return;
-	free(node);
-}
-
-void free_tree(node_t *root) {
-	if (!root) return;
-
-	free_tree(root->left);
-	free_tree(root->right);
-
-	free_node(root);
 }
