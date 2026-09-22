@@ -5,7 +5,7 @@
 
 typedef enum { UNKNOWN, NUMBER, CONSTANT, FUNCTION, ADD, MULT, EXP, EQUALS, LPAREN, RPAREN } token_type;
 
-typedef enum { UNKNOWN_FUNC, SQRT, SIN, COS, TAN } function_type;
+typedef enum { UNKNOWN_FUNC, SQRT, SIN, COS, TAN, ASIN, ACOS, ATAN, ABS, LOG_E, LOG_10 } function_type;
 
 typedef struct {
 	char op;

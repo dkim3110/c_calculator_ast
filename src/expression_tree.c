@@ -134,16 +134,26 @@ double solve_tree(node_t *root, bool *is_bool) {
 				case '-': return left_val - right_val;
 				case '*': return left_val * right_val;
 				case '/': return left_val / right_val;
+				case '%': return fmod(left_val, right_val);
 			}
 			break;
 		case EXP: return pow(left_val, right_val);
 		case FUNCTION:
 			switch (root->token.func) {
-				case SQRT: return sqrt(left_val + right_val);
-				case SIN:	 return sin(left_val + right_val);
-				case COS:	 return cos(left_val + right_val);
-				case TAN:	 return tan(left_val + right_val);
-				default:	 return NAN;
+				case SQRT:	 return sqrt(left_val + right_val);
+
+				case SIN:		 return sin(left_val + right_val);
+				case COS:		 return cos(left_val + right_val);
+				case TAN:		 return tan(left_val + right_val);
+
+				case ASIN:	 return asin(left_val + right_val);
+				case ACOS:	 return acos(left_val + right_val);
+				case ATAN:	 return atan(left_val + right_val);
+
+				case ABS:		 return fabs(left_val + right_val);
+				case LOG_E:	 return log(left_val + right_val);
+				case LOG_10: return log10(left_val + right_val);
+				default:		 return NAN;
 			}
 			break;
 		default: return NAN;

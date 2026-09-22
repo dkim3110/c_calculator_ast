@@ -62,6 +62,24 @@ static void handle_functions(str word, token_t *token) {
 	} else if (str_equals(word, (str){.data = "tan", .len = 3})) {
 		token->type = FUNCTION;
 		token->func = TAN;
+	} else if (str_equals(word, (str){.data = "arcsin", .len = 6})) {
+		token->type = FUNCTION;
+		token->func = ASIN;
+	} else if (str_equals(word, (str){.data = "arccos", .len = 6})) {
+		token->type = FUNCTION;
+		token->func = ACOS;
+	} else if (str_equals(word, (str){.data = "arctan", .len = 6})) {
+		token->type = FUNCTION;
+		token->func = ATAN;
+	} else if (str_equals(word, (str){.data = "abs", .len = 3})) {
+		token->type = FUNCTION;
+		token->func = ABS;
+	} else if (str_equals(word, (str){.data = "ln", .len = 2})) {
+		token->type = FUNCTION;
+		token->func = LOG_E;
+	} else if (str_equals(word, (str){.data = "log", .len = 3})) {
+		token->type = FUNCTION;
+		token->func = LOG_10;
 	}
 }
 
@@ -88,6 +106,8 @@ dyn_token_t *tokenize(str source) {
 			case '*':
 				/* fallthrough */
 			case '/':
+				/* fallthrough */
+			case '%':
 				token.type = MULT;
 				token.op = curr;
 				break;
@@ -107,14 +127,12 @@ dyn_token_t *tokenize(str source) {
 				token.type = RPAREN;
 				token.op = curr;
 				break;
-			// ------------------------------------------------------------ operators --
+				// ------------------------------------------------------------ operators --
 
-			// -- constants ------------------------------------------------------------
 			case 'e':
 				token.type = CONSTANT;
 				token.num_val = M_E;
 				break;
-			// ------------------------------------------------------------ constants --
 			default:
 				if (isdigit(curr)) {
 					bool has_decimal = false;
@@ -135,7 +153,6 @@ dyn_token_t *tokenize(str source) {
 
 					if (peek(source, &src_index) == '(') handle_functions(word, &token);
 
-					// -- identify multi-letter constant -------------------------------------
 					if (str_equals(word, (str){.data = "pi", .len = 2})) {
 						token.type = CONSTANT;
 						token.num_val = M_PI;
@@ -149,7 +166,6 @@ dyn_token_t *tokenize(str source) {
 						token.type = CONSTANT;
 						token.num_val = INFINITY;
 					}
-					// ------------------------------------- identify multi-letter constant --
 				}
 				break;
 		}
