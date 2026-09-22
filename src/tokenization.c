@@ -95,6 +95,10 @@ dyn_token_t *tokenize(str source) {
 				token.type = EXP;
 				token.op = curr;
 				break;
+			case '=':
+				token.type = EQUALS;
+				token.op = curr;
+				break;
 			case '(':
 				token.type = LPAREN;
 				token.op = curr;

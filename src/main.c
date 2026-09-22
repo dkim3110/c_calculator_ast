@@ -40,7 +40,8 @@ int main(int argc, char *argv[]) {
 		goto end_program;
 	}
 
-	double final_num = solve_tree(root);
+	bool is_bool = false;
+	double final_num = solve_tree(root, &is_bool);
 	if (isnan(final_num)) {
 		fputs("CALCULATION FAILURE\n", stderr);
 		result = EXIT_FAILURE;
@@ -48,7 +49,9 @@ int main(int argc, char *argv[]) {
 	}
 
 	fputs("ANSWER: ", stdout);
-	if (fabs((fmod(final_num, 1.0))) <= DBL_EPSILON) {
+	if (is_bool) {
+		printf("%s\n", (final_num) ? "TRUE" : "FALSE");
+	} else if (fabs((fmod(final_num, 1.0))) <= DBL_EPSILON) {
 		printf("%.0f\n", final_num);
 	} else {
 		printf("%.*f\n", 3, final_num);

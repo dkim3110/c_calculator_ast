@@ -3,6 +3,7 @@
 #include "mem_arena.h"
 #include "tokenization.h"
 
+#include "float.h"
 #include <math.h>
 #include <stdlib.h>
 
@@ -108,7 +109,7 @@ end_create_tree:
 	return root;
 }
 
-double solve_tree(node_t *root) {
+double solve_tree(node_t *root, bool *is_bool) {
 	if (!root) return NAN;
 
 	switch (root->token.type) {
@@ -118,14 +119,17 @@ double solve_tree(node_t *root) {
 		default:			 break;
 	}
 
-	double left_val = solve_tree(root->left);
-	double right_val = solve_tree(root->right);
+	double left_val = solve_tree(root->left, is_bool);
+	double right_val = solve_tree(root->right, is_bool);
 
 	switch (root->token.type) {
+		case EQUALS:
+			/* fallthrough */
 		case ADD:
 			/* fallthrough */
 		case MULT:
 			switch (root->token.op) {
+				case '=': (*is_bool) = true; return fabs(left_val - right_val) <= DBL_EPSILON;
 				case '+': return left_val + right_val;
 				case '-': return left_val - right_val;
 				case '*': return left_val * right_val;

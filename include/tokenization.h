@@ -3,7 +3,7 @@
 
 #include "string_view.h"
 
-typedef enum { UNKNOWN, NUMBER, CONSTANT, FUNCTION, ADD, MULT, EXP, LPAREN, RPAREN } token_type;
+typedef enum { UNKNOWN, NUMBER, CONSTANT, FUNCTION, ADD, MULT, EXP, EQUALS, LPAREN, RPAREN } token_type;
 
 typedef enum { UNKNOWN_FUNC, SQRT, SIN, COS, TAN } function_type;
 
