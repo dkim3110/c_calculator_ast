@@ -17,6 +17,11 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
+	if (argc > 2) {
+		fputs("INVALID INPUT FORMAT; WRAP INPUT IN QUOTATIONS\n", stderr);
+		exit(EXIT_FAILURE);
+	}
+
 	mem_arena *perm_arena = arena_init(MiB(1));
 	if (!perm_arena) {
 		fputs("NOTHING TO CALCULATE\n", stderr);
@@ -24,13 +29,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	dyn_char *buffer = NULL;
-	for (int n = 1; n < argc; n++) {
-		for (size_t m = 0; argv[n][m] != '\0'; m++) {
-			arr_push(buffer, argv[n][m]);
-		}
-
-		arr_push(buffer, ' ');
-	}
+	for (size_t m = 0; argv[1][m] != '\0'; m++) arr_push(buffer, argv[1][m]);
 	arr_push(buffer, '\0');
 
 	dyn_token_t *tokens = tokenize(to_str(buffer));

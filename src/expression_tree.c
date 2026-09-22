@@ -8,11 +8,11 @@
 
 static inline int get_precedence(token_type type) {
 	switch (type) {
-		case ADD:			 return 1;
-		case MULT:		 return 2;
-		case EXP:			 return 3;
-		case OP_PAREN: return 0;
-		default:			 return 0;
+		case ADD:		 return 1;
+		case MULT:	 return 2;
+		case EXP:		 return 3;
+		case LPAREN: return 0;
+		default:		 return 0;
 	}
 }
 
@@ -41,21 +41,21 @@ node_t *create_tree(dyn_token_t *tokens, mem_arena *arena) {
 			goto end_create_tree;
 		}
 
-		if ((curr_tok.type == ADD) && ((n == 0) || (tokens[n - 1].type == OP_PAREN))) {
-			node_t *zero_node = create_node((token_t){.type = NUMBER, .val = (str){.data = "0", .len = 1}}, arena);
+		if ((curr_tok.type == ADD) && ((n == 0) || (tokens[n - 1].type == LPAREN))) {
+			node_t *zero_node = create_node((token_t){.type = NUMBER, .num_val = 0.0}, arena);
 			if (zero_node) arr_push(node_stack, zero_node);
 		}
 
-		if (curr_tok.type == NUMBER) {
+		if ((curr_tok.type == NUMBER) || (curr_tok.type == CONSTANT)) {
 			node_t *num_node = create_node(curr_tok, arena);
 			if (num_node) arr_push(node_stack, num_node);
-		} else if (curr_tok.type == OP_PAREN) {
+		} else if (curr_tok.type == LPAREN) {
 			arr_push(op_stack, curr_tok);
-		} else if (curr_tok.type == CL_PAREN) {
+		} else if (curr_tok.type == RPAREN) {
 			while (arr_len(op_stack) > 0) {
 				token_t top_op = op_stack[arr_len(op_stack) - 1];
 
-				if (top_op.type == OP_PAREN) {
+				if (top_op.type == LPAREN) {
 					arr_pop(op_stack);
 					break;
 				}
@@ -109,20 +109,25 @@ end_create_tree:
 
 double solve_tree(node_t *root) {
 	if (!root) return NAN;
-	else if (root->token.type == NUMBER) return str_to_dbl(root->token.val);
+	else {
+		switch (root->token.type) {
+			case NUMBER:
+				/* fallthrough */
+			case CONSTANT: return root->token.num_val; break;
+			default:			 break;
+		}
+	}
 
 	double left_val = solve_tree(root->left);
 	double right_val = solve_tree(root->right);
 
 	switch (root->token.type) {
 		case ADD:
-			switch (root->token.val.data[0]) {
+			/* fallthrough */
+		case MULT:
+			switch (root->token.op) {
 				case '+': return left_val + right_val;
 				case '-': return left_val - right_val;
-			}
-			break;
-		case MULT:
-			switch (root->token.val.data[0]) {
 				case '*': return left_val * right_val;
 				case '/': return left_val / right_val;
 			}
