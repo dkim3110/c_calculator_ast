@@ -3,17 +3,20 @@
 
 #include "string_view.h"
 
-typedef enum { UNKNOWN, NUMBER, CONSTANT, ADD, MULT, EXP, LPAREN, RPAREN } token_type;
+typedef enum { UNKNOWN, NUMBER, CONSTANT, FUNCTION, ADD, MULT, EXP, LPAREN, RPAREN } token_type;
+
+typedef enum { UNKNOWN_FUNC, SQRT, SIN, COS, TAN } function_type;
 
 typedef struct {
-	token_type type;
 	char op;
 	double num_val;
+	function_type func;
+	token_type type;
 } token_t;
 
 typedef token_t dyn_token_t;
 
-static const token_t NULL_TOKEN = (token_t){.type = UNKNOWN, .op = '\0', .num_val = NAN};
+static const token_t NULL_TOKEN = (token_t){.type = UNKNOWN, .op = '\0', .func = UNKNOWN_FUNC, .num_val = NAN};
 
 extern dyn_token_t *tokenize(str source);
 

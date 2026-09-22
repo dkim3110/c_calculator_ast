@@ -28,27 +28,23 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
-	dyn_char *buffer = NULL;
-	for (size_t m = 0; argv[1][m] != '\0'; m++) arr_push(buffer, argv[1][m]);
-	arr_push(buffer, '\0');
-
-	dyn_token_t *tokens = tokenize(to_str(buffer));
+	dyn_token_t *tokens = tokenize(to_str(argv[1]));
 	if (!tokens) {
 		result = EXIT_FAILURE;
-		goto cleanup_token;
+		goto end_program;
 	}
 
 	node_t *root = create_tree(tokens, perm_arena);
 	if (!root) {
 		result = EXIT_FAILURE;
-		goto cleanup_root;
+		goto end_program;
 	}
 
 	double final_num = solve_tree(root);
 	if (isnan(final_num)) {
 		fputs("CALCULATION FAILURE\n", stderr);
 		result = EXIT_FAILURE;
-		goto cleanup_final_num;
+		goto end_program;
 	}
 
 	fputs("ANSWER: ", stdout);
@@ -58,11 +54,8 @@ int main(int argc, char *argv[]) {
 		printf("%.*f\n", 3, final_num);
 	}
 
-cleanup_final_num:
+end_program:
 	arena_destroy(perm_arena);
-cleanup_root:
-	arr_free(tokens);
-cleanup_token:
-	arr_free(buffer);
+	if (tokens) arr_free(tokens);
 	exit(result);
 }

@@ -25,6 +25,46 @@ static inline char consume(str source, size_t *src_index) {
 	return source.data[(*src_index)++];
 }
 
+static void handle_implicit_mult(dyn_token_t **tokens, token_t token, size_t t_len) {
+	if (t_len > 0) {
+		token_type prev_type = (*tokens)[t_len - 1].type;
+
+		bool implicit_mult = false;
+		if ((prev_type == NUMBER) && (token.type == LPAREN)) implicit_mult = true;
+		if ((prev_type == RPAREN) && (token.type == LPAREN)) implicit_mult = true;
+		if ((prev_type == RPAREN) && (token.type == NUMBER)) implicit_mult = true;
+
+		if ((prev_type == CONSTANT) && (token.type == LPAREN)) implicit_mult = true;
+		if ((prev_type == RPAREN) && (token.type == CONSTANT)) implicit_mult = true;
+
+		if ((prev_type == NUMBER) && (token.type == CONSTANT)) implicit_mult = true;
+		if ((prev_type == CONSTANT) && (token.type == NUMBER)) implicit_mult = true;
+
+		if ((prev_type == NUMBER) && (token.type == FUNCTION)) implicit_mult = true;
+
+		if (implicit_mult) {
+			token_t mult_tok = {.type = MULT, .op = '*'};
+			arr_push((*tokens), mult_tok);
+		}
+	}
+}
+
+static void handle_functions(str word, token_t *token) {
+	if (str_equals(word, (str){.data = "sqrt", .len = 4})) {
+		token->type = FUNCTION;
+		token->func = SQRT;
+	} else if (str_equals(word, (str){.data = "sin", .len = 3})) {
+		token->type = FUNCTION;
+		token->func = SIN;
+	} else if (str_equals(word, (str){.data = "cos", .len = 3})) {
+		token->type = FUNCTION;
+		token->func = COS;
+	} else if (str_equals(word, (str){.data = "tan", .len = 3})) {
+		token->type = FUNCTION;
+		token->func = TAN;
+	}
+}
+
 dyn_token_t *tokenize(str source) {
 	dyn_token_t *tokens = NULL;
 	size_t src_index = 0;
@@ -32,50 +72,47 @@ dyn_token_t *tokenize(str source) {
 	while (peek(source, &src_index) != '\0') {
 		token_t token = NULL_TOKEN;
 		char curr = peek(source, &src_index);
+		size_t start_index = src_index;
+		consume(source, &src_index);
 
-		if (isspace(curr)) {
-			consume(source, &src_index);
-			continue;
-		}
+		if (isspace(curr)) continue;
 
 		switch (curr) {
+			// -- operators ------------------------------------------------------------
 			case '+':
 				/* fallthrough */
 			case '-':
 				token.type = ADD;
 				token.op = curr;
-				consume(source, &src_index);
 				break;
 			case '*':
 				/* fallthrough */
 			case '/':
 				token.type = MULT;
 				token.op = curr;
-				consume(source, &src_index);
 				break;
 			case '^':
 				token.type = EXP;
 				token.op = curr;
-				consume(source, &src_index);
 				break;
 			case '(':
 				token.type = LPAREN;
 				token.op = curr;
-				consume(source, &src_index);
 				break;
 			case ')':
 				token.type = RPAREN;
 				token.op = curr;
-				consume(source, &src_index);
 				break;
+			// ------------------------------------------------------------ operators --
+
+			// -- constants ------------------------------------------------------------
 			case 'e':
 				token.type = CONSTANT;
 				token.num_val = M_E;
-				consume(source, &src_index);
 				break;
+			// ------------------------------------------------------------ constants --
 			default:
 				if (isdigit(curr)) {
-					size_t start_index = src_index;
 					bool has_decimal = false;
 
 					while (isdigit(peek(source, &src_index)) || peek(source, &src_index) == '.') {
@@ -89,18 +126,12 @@ dyn_token_t *tokenize(str source) {
 					token.type = NUMBER;
 					token.num_val = str_to_dbl((str){.data = &source.data[start_index], .len = src_index - start_index});
 				} else if (isalpha(curr)) {
-					dyn_char *buffer = NULL;
+					while (isalpha(peek(source, &src_index))) consume(source, &src_index);
+					str word = str_sub(source, start_index, src_index);
 
-					while (isalpha(peek(source, &src_index))) {
-						char curr = peek(source, &src_index);
-						if (curr == ' ') break;
-						arr_push(buffer, curr);
-						consume(source, &src_index);
-					}
-					arr_push(buffer, '\0');
+					if (peek(source, &src_index) == '(') handle_functions(word, &token);
 
-					str word = str_trim(to_str(buffer));
-
+					// -- identify multi-letter constant -------------------------------------
 					if (str_equals(word, (str){.data = "pi", .len = 2})) {
 						token.type = CONSTANT;
 						token.num_val = M_PI;
@@ -110,31 +141,16 @@ dyn_token_t *tokenize(str source) {
 					} else if (str_equals(word, (str){.data = "tau", .len = 3})) {
 						token.type = CONSTANT;
 						token.num_val = M_PI * 2;
+					} else if (str_equals(word, (str){.data = "inf", .len = 3})) {
+						token.type = CONSTANT;
+						token.num_val = INFINITY;
 					}
-
-					arr_free(buffer);
-				} else consume(source, &src_index);
+					// ------------------------------------- identify multi-letter constant --
+				}
 				break;
 		}
 
-		size_t t_len = arr_len(tokens);
-		if (t_len > 0) {
-			token_type prev_type = tokens[t_len - 1].type;
-
-			bool implicit_mult = false;
-			if ((prev_type == NUMBER) && (token.type == LPAREN)) implicit_mult = true;
-			if ((prev_type == RPAREN) && (token.type == LPAREN)) implicit_mult = true;
-			if ((prev_type == RPAREN) && (token.type == NUMBER)) implicit_mult = true;
-
-			if ((prev_type == NUMBER) && (token.type == CONSTANT)) implicit_mult = true;
-			if ((prev_type == CONSTANT) && (token.type == NUMBER)) implicit_mult = true;
-
-			if (implicit_mult) {
-				token_t mult_tok = {.type = MULT, .op = '*'};
-				arr_push(tokens, mult_tok);
-			}
-		}
-
+		handle_implicit_mult(&tokens, token, arr_len(tokens));
 		arr_push(tokens, token);
 	}
 	return tokens;

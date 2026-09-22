@@ -10,9 +10,9 @@
 #include <string.h>
 #include <sys/types.h>
 
-#define FAT_STR_CHAR_NUM (256)
-#define STR_FMT "%.*s"
-#define STR_ARG(s) (int)(s).len, (s).data
+#define STR_VW_CHAR_NUM (256)
+#define STR_FMT					"%.*s"
+#define STR_ARG(s)			(int)(s).len, (s).data
 
 typedef struct {
 	const char *data;
@@ -20,13 +20,6 @@ typedef struct {
 } str;
 
 static const str NULL_STR = (str){.data = NULL, .len = 0};
-
-// == FUNCTION DECLARATIONS ===================================================
-
-/*
- * Function to verify if a given str struct is empty.
- * Returns 1 if true, 0 if false.
- */
 
 static inline bool str_is_empty(str s);
 static inline bool str_is_blank(str s);
@@ -43,6 +36,7 @@ static inline void fput_str_tolower(str s, FILE *stream);
 
 static inline str str_take(str s, size_t n);
 static inline str str_drop(str s, size_t n);
+static inline str str_sub(str s, size_t start, size_t end);
 static inline str split_str(str *s, char delimiter);
 static inline str str_trim(str s);
 
@@ -53,10 +47,17 @@ static inline int char_at(str s, size_t index);
 
 static inline str to_str(const char *cstring);
 static inline double str_to_dbl(str s);
-// =================================================== FUNCTION DECLARATIONS ==
 
 // == CHECKING ================================================================
-static inline bool str_is_empty(str s) { return ((s.len == 0) || (!s.data)); } /* str_is_empty() */
+
+/*
+ * Function to verify if a given str struct is empty.
+ * Returns 1 if true, 0 if false.
+ */
+
+static inline bool str_is_empty(str s) {
+	return ((s.len == 0) || (!s.data));
+} /* str_is_empty() */
 
 /*
  * Function to verify if a given str struct consists of only whitespaces.
@@ -166,7 +167,9 @@ static inline void fput_str(str s, FILE *stream) {
  * Function to print a str struct to stdout.
  */
 
-static inline void print_str(str s) { fput_str(s, stdout); } /* print_str() */
+static inline void print_str(str s) {
+	fput_str(s, stdout);
+} /* print_str() */
 
 /*
  * Function to print a str struct to stdout, then a newline character.
@@ -227,6 +230,17 @@ static inline str str_drop(str s, size_t n) {
 } /* str_drop() */
 
 /*
+ * Function to extract a substring from a str struct from the start and end indexes provided.
+ * Start is inclusive, end is exclusive.
+ */
+
+static inline str str_sub(str s, size_t start, size_t end) {
+	str result = str_take(s, end);
+	result = str_drop(result, start);
+	return result;
+} /* str_sub() */
+
+/*
  * Function to split a given str struct based on the specifed delimeter.
  * Returns a str struct up to the specified delimeter, or the original string
  * if it is empty. The original str struct retains all characters after the
@@ -236,8 +250,7 @@ static inline str str_drop(str s, size_t n) {
 static inline str split_str(str *s, char delimiter) {
 	if (str_is_empty(*s)) return *s;
 	size_t n = 0;
-	while ((n < s->len) && (s->data[n] != delimiter))
-		n++;
+	while ((n < s->len) && (s->data[n] != delimiter)) n++;
 	str result = str_take(*s, n);
 
 	if (n < s->len) *s = str_drop(*s, n + 1);
@@ -254,7 +267,7 @@ static inline str split_str(str *s, char delimiter) {
 
 static inline str str_trim(str s) {
 	if (str_is_empty(s)) return s;
-	if (str_is_blank(s)) return (str){.data = NULL, .len = 0};
+	if (str_is_blank(s)) return NULL_STR;
 
 	while ((s.len > 0) && (isspace((unsigned char)s.data[0]))) {
 		s = str_drop(s, 1);
@@ -299,7 +312,7 @@ static inline bool str_contains(str base, str item, ptrdiff_t *index) {
 		return false;
 	}
 
-	if ((base.len < FAT_STR_CHAR_NUM) || (item.len <= 5) || (base.len == item.len)) {
+	if ((base.len < STR_VW_CHAR_NUM) || (item.len <= 5) || (base.len == item.len)) {
 		for (size_t n = 0; n <= (base.len - item.len); n++) {
 			if (base.data[n] != item.data[0]) continue;
 			if (memcmp(base.data + n, item.data, item.len) == 0) {
@@ -312,11 +325,9 @@ static inline bool str_contains(str base, str item, ptrdiff_t *index) {
 		return false;
 	}
 
-	size_t bad_char[FAT_STR_CHAR_NUM];
-	for (size_t n = 0; n < FAT_STR_CHAR_NUM; n++)
-		bad_char[n] = item.len;
-	for (size_t n = 0; n < item.len - 1; n++)
-		bad_char[(unsigned char)item.data[n]] = item.len - 1 - n;
+	size_t bad_char[STR_VW_CHAR_NUM];
+	for (size_t n = 0; n < STR_VW_CHAR_NUM; n++) bad_char[n] = item.len;
+	for (size_t n = 0; n < item.len - 1; n++) bad_char[(unsigned char)item.data[n]] = item.len - 1 - n;
 
 	size_t shift = 0;
 	while (shift <= (base.len - item.len)) {
@@ -377,15 +388,9 @@ static inline str to_str(const char *cstring) {
 } /* to_str() */
 
 /*
- * Function to convert a char variable into a str struct.
- */
-
-static inline str char_to_str(const char *c) { return (str){.data = c, .len = 1}; } /* char_to_str() */
-
-/*
  * Function to convert a given str struct into a floating-point value.
  * Returns NAN if it fails to convert, or if the string is longer than
- * FAT_STR_CHAR_NUM.
+ * STR_VW_CHAR_NUM.
  */
 
 static inline double str_to_dbl(str s) {
@@ -394,8 +399,8 @@ static inline double str_to_dbl(str s) {
 	}
 
 	str number = str_trim(s);
-	if (number.len > FAT_STR_CHAR_NUM) return NAN;
-	char buffer[FAT_STR_CHAR_NUM + 1];
+	if (number.len > STR_VW_CHAR_NUM) return NAN;
+	char buffer[STR_VW_CHAR_NUM + 1];
 	memcpy(buffer, number.data, number.len);
 	buffer[number.len] = '\0';
 

@@ -8,11 +8,12 @@
 
 static inline int get_precedence(token_type type) {
 	switch (type) {
-		case ADD:		 return 1;
-		case MULT:	 return 2;
-		case EXP:		 return 3;
-		case LPAREN: return 0;
-		default:		 return 0;
+		case ADD:			 return 1;
+		case MULT:		 return 2;
+		case EXP:			 return 3;
+		case FUNCTION: return 4;
+		case LPAREN:	 return 0;
+		default:			 return 0;
 	}
 }
 
@@ -41,7 +42,7 @@ node_t *create_tree(dyn_token_t *tokens, mem_arena *arena) {
 			goto end_create_tree;
 		}
 
-		if ((curr_tok.type == ADD) && ((n == 0) || (tokens[n - 1].type == LPAREN))) {
+		if (((curr_tok.type == ADD) && ((n == 0) || (tokens[n - 1].type == LPAREN))) || (curr_tok.type == FUNCTION)) {
 			node_t *zero_node = create_node((token_t){.type = NUMBER, .num_val = 0.0}, arena);
 			if (zero_node) arr_push(node_stack, zero_node);
 		}
@@ -109,13 +110,12 @@ end_create_tree:
 
 double solve_tree(node_t *root) {
 	if (!root) return NAN;
-	else {
-		switch (root->token.type) {
-			case NUMBER:
-				/* fallthrough */
-			case CONSTANT: return root->token.num_val; break;
-			default:			 break;
-		}
+
+	switch (root->token.type) {
+		case NUMBER:
+			/* fallthrough */
+		case CONSTANT: return root->token.num_val; break;
+		default:			 break;
 	}
 
 	double left_val = solve_tree(root->left);
@@ -133,7 +133,16 @@ double solve_tree(node_t *root) {
 			}
 			break;
 		case EXP: return pow(left_val, right_val);
-		default:	return NAN;
+		case FUNCTION:
+			switch (root->token.func) {
+				case SQRT: return sqrt(left_val + right_val);
+				case SIN:	 return sin(left_val + right_val);
+				case COS:	 return cos(left_val + right_val);
+				case TAN:	 return tan(left_val + right_val);
+				default:	 return NAN;
+			}
+			break;
+		default: return NAN;
 	}
 
 	return NAN;
