@@ -13,7 +13,6 @@ static inline int get_precedence(token_type type) {
 		case MULT:		 return 2;
 		case EXP:			 return 3;
 		case FUNCTION: return 4;
-		case LPAREN:	 return 0;
 		default:			 return 0;
 	}
 }
@@ -30,6 +29,13 @@ static inline node_t *create_node(token_t token, mem_arena *arena) {
 	return node;
 }
 
+static inline void append_children(token_t top_op, dyn_node_t ***node_stack, mem_arena *arena) {
+	node_t *op_node = create_node(top_op, arena);
+	op_node->right = arr_pop((*node_stack));
+	op_node->left = (top_op.type != FUNCTION) ? arr_pop((*node_stack)) : NULL;
+	arr_push((*node_stack), op_node);
+}
+
 node_t *create_tree(dyn_token_t *tokens, mem_arena *arena) {
 	dyn_node_t **node_stack = NULL;
 	dyn_token_t *op_stack = NULL;
@@ -43,7 +49,7 @@ node_t *create_tree(dyn_token_t *tokens, mem_arena *arena) {
 			goto end_create_tree;
 		}
 
-		if (((curr_tok.type == ADD) && ((n == 0) || (tokens[n - 1].type == LPAREN))) || (curr_tok.type == FUNCTION)) {
+		if ((curr_tok.type == ADD) && ((n == 0) || (tokens[n - 1].type == LPAREN))) {
 			node_t *zero_node = create_node((token_t){.type = NUMBER, .num_val = 0.0}, arena);
 			if (zero_node) arr_push(node_stack, zero_node);
 		}
@@ -63,10 +69,7 @@ node_t *create_tree(dyn_token_t *tokens, mem_arena *arena) {
 				}
 
 				arr_pop(op_stack);
-				node_t *op_node = create_node(top_op, arena);
-				op_node->right = arr_pop(node_stack);
-				op_node->left = arr_pop(node_stack);
-				arr_push(node_stack, op_node);
+				append_children(top_op, &node_stack, arena);
 			}
 		} else {
 			while (arr_len(op_stack) > 0) {
@@ -77,12 +80,7 @@ node_t *create_tree(dyn_token_t *tokens, mem_arena *arena) {
 				if (!should_pop) break;
 
 				arr_pop(op_stack);
-				node_t *op_node = create_node(top_op, arena);
-
-				op_node->right = arr_pop(node_stack);
-				op_node->left = arr_pop(node_stack);
-
-				arr_push(node_stack, op_node);
+				append_children(top_op, &node_stack, arena);
 			}
 
 			arr_push(op_stack, curr_tok);
@@ -91,12 +89,7 @@ node_t *create_tree(dyn_token_t *tokens, mem_arena *arena) {
 
 	while (arr_len(op_stack) > 0) {
 		token_t top_op = arr_pop(op_stack);
-		node_t *op_node = create_node(top_op, arena);
-
-		op_node->right = arr_pop(node_stack);
-		op_node->left = arr_pop(node_stack);
-
-		arr_push(node_stack, op_node);
+		append_children(top_op, &node_stack, arena);
 	}
 
 	if (arr_len(node_stack) == 1) root = node_stack[0];
@@ -119,7 +112,7 @@ double solve_tree(node_t *root, bool *is_bool) {
 		default:			 break;
 	}
 
-	double left_val = solve_tree(root->left, is_bool);
+	double left_val = (root->token.type != FUNCTION) ? solve_tree(root->left, is_bool) : 0.0;
 	double right_val = solve_tree(root->right, is_bool);
 
 	switch (root->token.type) {
@@ -140,19 +133,19 @@ double solve_tree(node_t *root, bool *is_bool) {
 		case EXP: return pow(left_val, right_val);
 		case FUNCTION:
 			switch (root->token.func) {
-				case SQRT:	 return sqrt(left_val + right_val);
+				case SQRT:	 return sqrt(right_val);
 
-				case SIN:		 return sin(left_val + right_val);
-				case COS:		 return cos(left_val + right_val);
-				case TAN:		 return tan(left_val + right_val);
+				case SIN:		 return sin(right_val);
+				case COS:		 return cos(right_val);
+				case TAN:		 return tan(right_val);
 
-				case ASIN:	 return asin(left_val + right_val);
-				case ACOS:	 return acos(left_val + right_val);
-				case ATAN:	 return atan(left_val + right_val);
+				case ASIN:	 return asin(right_val);
+				case ACOS:	 return acos(right_val);
+				case ATAN:	 return atan(right_val);
 
-				case ABS:		 return fabs(left_val + right_val);
-				case LOG_E:	 return log(left_val + right_val);
-				case LOG_10: return log10(left_val + right_val);
+				case ABS:		 return fabs(right_val);
+				case LOG_E:	 return log(right_val);
+				case LOG_10: return log10(right_val);
 				default:		 return NAN;
 			}
 			break;

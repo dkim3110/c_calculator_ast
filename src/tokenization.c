@@ -49,37 +49,137 @@ static void handle_implicit_mult(dyn_token_t **tokens, token_t token, size_t t_l
 	}
 }
 
+static void handle_constants(str word, token_t *token) {
+	switch (word.len) {
+		case 1:
+			switch (word.data[0]) {
+				case 'e': // euler's number
+					token->type = CONSTANT;
+					token->num_val = M_E;
+					break;
+			}
+			break;
+		case 2:
+			switch (word.data[0]) {
+				case 'p':
+					if (word.data[1] == 'i') { // pi
+						token->type = CONSTANT;
+						token->num_val = M_PI;
+					}
+					break;
+				default: break;
+			}
+			break;
+		case 3:
+			switch (word.data[0]) {
+				case 'p':
+					if ((word.data[1] == 'h') && (word.data[2] == 'i')) { // phi
+						token->type = CONSTANT;
+						token->num_val = M_PHI;
+					}
+					break;
+				case 't':
+					if ((word.data[1] == 'a') && (word.data[2] == 'u')) { // tau
+						token->type = CONSTANT;
+						token->num_val = M_PI * 2;
+					}
+					break;
+				case 'i':
+					if ((word.data[1] == 'n') && (word.data[2] == 'f')) { // inf
+						token->type = CONSTANT;
+						token->num_val = INFINITY;
+					}
+					break;
+				default: break;
+			}
+			break;
+		default: break;
+	}
+}
+
 static void handle_functions(str word, token_t *token) {
-	if (str_equals(word, (str){.data = "sqrt", .len = 4})) {
-		token->type = FUNCTION;
-		token->func = SQRT;
-	} else if (str_equals(word, (str){.data = "sin", .len = 3})) {
-		token->type = FUNCTION;
-		token->func = SIN;
-	} else if (str_equals(word, (str){.data = "cos", .len = 3})) {
-		token->type = FUNCTION;
-		token->func = COS;
-	} else if (str_equals(word, (str){.data = "tan", .len = 3})) {
-		token->type = FUNCTION;
-		token->func = TAN;
-	} else if (str_equals(word, (str){.data = "arcsin", .len = 6})) {
-		token->type = FUNCTION;
-		token->func = ASIN;
-	} else if (str_equals(word, (str){.data = "arccos", .len = 6})) {
-		token->type = FUNCTION;
-		token->func = ACOS;
-	} else if (str_equals(word, (str){.data = "arctan", .len = 6})) {
-		token->type = FUNCTION;
-		token->func = ATAN;
-	} else if (str_equals(word, (str){.data = "abs", .len = 3})) {
-		token->type = FUNCTION;
-		token->func = ABS;
-	} else if (str_equals(word, (str){.data = "ln", .len = 2})) {
-		token->type = FUNCTION;
-		token->func = LOG_E;
-	} else if (str_equals(word, (str){.data = "log", .len = 3})) {
-		token->type = FUNCTION;
-		token->func = LOG_10;
+	switch (word.len) {
+		case 2:
+			switch (word.data[0]) {
+				case 'l':
+					if (word.data[1] == 'n') { // ln
+						token->type = FUNCTION;
+						token->func = LOG_E;
+					}
+					break;
+				default: break;
+			}
+
+			break;
+		case 3:
+			switch (word.data[0]) {
+				case 's':
+					if ((word.data[1] == 'i') && (word.data[2] == 'n')) { // sin
+						token->type = FUNCTION;
+						token->func = SIN;
+					}
+					break;
+				case 'c':
+					if ((word.data[1] == 'o') && (word.data[2] == 's')) { // cos
+						token->type = FUNCTION;
+						token->func = COS;
+					}
+					break;
+				case 't':
+					if ((word.data[1] == 'a') && (word.data[2] == 'n')) { // tan
+						token->type = FUNCTION;
+						token->func = TAN;
+					}
+					break;
+				case 'a':
+					if ((word.data[1] == 'b') && (word.data[2] == 's')) { // abs
+						token->type = FUNCTION;
+						token->func = ABS;
+					}
+					break;
+				case 'l':
+					if ((word.data[1] == 'o') && (word.data[2] == 'g')) { // log
+						token->type = FUNCTION;
+						token->func = LOG_10;
+					}
+					break;
+				default: break;
+			}
+
+			break;
+		case 4:
+			switch (word.data[0]) {
+				case 's':
+					if ((word.data[1] == 'q') && (word.data[2] == 'r') && (word.data[3] == 't')) { // sqrt
+						token->type = FUNCTION;
+						token->func = SQRT;
+					}
+					break;
+				default: break;
+			}
+
+			break;
+		case 6:
+			if (str_starts_with(word, (str){.data = "arc", .len = 3})) {
+				switch (word.data[3]) {
+					case 's': // arcsin
+						token->type = FUNCTION;
+						token->func = ASIN;
+						break;
+					case 'c': // arccos
+						token->type = FUNCTION;
+						token->func = ACOS;
+						break;
+					case 't': // arctan
+						token->type = FUNCTION;
+						token->func = ATAN;
+						break;
+					default: break;
+				}
+			}
+
+			break;
+		default: break;
 	}
 }
 
@@ -128,11 +228,6 @@ dyn_token_t *tokenize(str source) {
 				token.op = curr;
 				break;
 				// ------------------------------------------------------------ operators --
-
-			case 'e':
-				token.type = CONSTANT;
-				token.num_val = M_E;
-				break;
 			default:
 				if (isdigit(curr)) {
 					bool has_decimal = false;
@@ -152,20 +247,7 @@ dyn_token_t *tokenize(str source) {
 					str word = str_sub(source, start_index, src_index);
 
 					if (peek(source, &src_index) == '(') handle_functions(word, &token);
-
-					if (str_equals(word, (str){.data = "pi", .len = 2})) {
-						token.type = CONSTANT;
-						token.num_val = M_PI;
-					} else if (str_equals(word, (str){.data = "phi", .len = 3})) {
-						token.type = CONSTANT;
-						token.num_val = M_PHI;
-					} else if (str_equals(word, (str){.data = "tau", .len = 3})) {
-						token.type = CONSTANT;
-						token.num_val = M_PI * 2;
-					} else if (str_equals(word, (str){.data = "inf", .len = 3})) {
-						token.type = CONSTANT;
-						token.num_val = INFINITY;
-					}
+					handle_constants(word, &token);
 				}
 				break;
 		}
