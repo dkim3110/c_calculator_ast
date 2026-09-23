@@ -34,8 +34,8 @@ A simple command-line utility to calculate basic expressions.
 
 ### CONSTANTS:
 
+- `e`
 - `pi`
 - `tau`
 - `phi`
-- `e`
 - `inf`
