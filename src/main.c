@@ -27,13 +27,14 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
-	token_t *tokens = tokenize(to_str(argv[1]), perm_arena);
+	size_t tokens_len = 0;
+	token_t *tokens = tokenize(to_str(argv[1]), perm_arena, &tokens_len);
 	if (!tokens) {
 		result = EXIT_FAILURE;
 		goto end_program;
 	}
 
-	node_t *root = create_tree(tokens, perm_arena);
+	node_t *root = create_tree(tokens, tokens_len, perm_arena);
 	if (!root) {
 		result = EXIT_FAILURE;
 		goto end_program;

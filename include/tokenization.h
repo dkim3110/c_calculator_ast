@@ -42,7 +42,7 @@ static const token_t END_TOKEN = (token_t){
 	.type = END_TERMINATOR,
 };
 
-extern token_t *tokenize(str source, mem_arena *arena);
+extern token_t *tokenize(str source, mem_arena *arena, size_t *tokens_index);
 
 static inline bool token_equals(token_t a, token_t b) {
 	return (a.type == b.type);

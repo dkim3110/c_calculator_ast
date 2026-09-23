@@ -183,9 +183,8 @@ static void handle_functions(str word, token_t *token) {
 	}
 }
 
-token_t *tokenize(str source, mem_arena *arena) {
+token_t *tokenize(str source, mem_arena *arena, size_t *tokens_index) {
 	token_t *tokens = arena_alloc(arena, 2 * source.len * sizeof(token_t));
-	size_t tokens_index = 0;
 	size_t src_index = 0;
 
 	while (peek(source, &src_index) != '\0') {
@@ -257,10 +256,10 @@ token_t *tokenize(str source, mem_arena *arena) {
 				break;
 		}
 
-		handle_implicit_mult(&tokens, token, tokens_index, &tokens_index);
-		tokens[tokens_index++] = token;
+		handle_implicit_mult(&tokens, token, (*tokens_index), tokens_index);
+		tokens[(*tokens_index)++] = token;
 	}
 
-	tokens[tokens_index] = END_TOKEN;
+	tokens[(*tokens_index)] = END_TOKEN;
 	return tokens;
 }

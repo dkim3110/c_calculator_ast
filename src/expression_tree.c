@@ -1,5 +1,4 @@
 #include "expression_tree.h"
-#include "dynamic_array.h"
 #include "mem_arena.h"
 #include "tokenization.h"
 
@@ -35,17 +34,21 @@ static inline node_t *create_node(token_t token, mem_arena *arena) {
 	return node;
 }
 
-static inline void append_children(token_t top_op, dyn_node_t ***node_stack, mem_arena *arena) {
+static inline void append_children(token_t top_op, node_t ***node_stack, size_t *node_stack_index, mem_arena *arena) {
 	node_t *op_node = create_node(top_op, arena);
-	op_node->right = (op_node->is_unary_postfix) ? NULL : arr_pop((*node_stack));
-	op_node->left = (op_node->is_unary_prefix) ? NULL : arr_pop((*node_stack));
-	arr_push((*node_stack), op_node);
+	op_node->right = (op_node->is_unary_postfix) ? NULL : (*node_stack)[--(*node_stack_index)];
+	op_node->left = (op_node->is_unary_prefix) ? NULL : (*node_stack)[--(*node_stack_index)];
+	(*node_stack)[(*node_stack_index)++] = op_node;
 }
 
-node_t *create_tree(token_t *tokens, mem_arena *arena) {
-	dyn_node_t **node_stack = NULL;
-	token_t *op_stack = NULL;
+node_t *create_tree(token_t *tokens, size_t tokens_len, mem_arena *arena) {
 	node_t *root = NULL;
+
+	node_t **node_stack = arena_alloc(arena, tokens_len * sizeof(node_t *));
+	size_t node_stack_index = 0;
+
+	token_t *op_stack = arena_alloc(arena, tokens_len * sizeof(token_t));
+	size_t op_stack_index = 0;
 
 	for (size_t n = 0; !token_equals(tokens[n], END_TOKEN); n++) {
 		token_t curr_tok = tokens[n];
@@ -57,63 +60,55 @@ node_t *create_tree(token_t *tokens, mem_arena *arena) {
 
 		if ((curr_tok.type == ADD) && ((n == 0) || (tokens[n - 1].type == LPAREN))) {
 			node_t *zero_node = create_node((token_t){.type = NUMBER, .num_val = 0.0}, arena);
-			if (zero_node) arr_push(node_stack, zero_node);
+			if (zero_node) node_stack[node_stack_index++] = zero_node;
 		}
 
 		if ((curr_tok.type == NUMBER) || (curr_tok.type == CONSTANT)) {
 			node_t *num_node = create_node(curr_tok, arena);
-			if (num_node) arr_push(node_stack, num_node);
+			if (num_node) node_stack[node_stack_index++] = num_node;
 		} else if (curr_tok.type == LPAREN) {
-			arr_push(op_stack, curr_tok);
+			op_stack[op_stack_index++] = curr_tok;
 		} else if (curr_tok.type == RPAREN) {
-			while (arr_len(op_stack) > 0) {
-				token_t top_op = op_stack[arr_len(op_stack) - 1];
+			while (op_stack_index > 0) {
+				token_t top_op = op_stack[op_stack_index - 1];
 
 				if (top_op.type == LPAREN) {
-					arr_pop(op_stack);
+					--op_stack_index;
 					break;
 				}
 
-				arr_pop(op_stack);
-				append_children(top_op, &node_stack, arena);
+				--op_stack_index;
+				append_children(top_op, &node_stack, &node_stack_index, arena);
 			}
 		} else {
-			while (arr_len(op_stack) > 0) {
-				token_t top_op = op_stack[arr_len(op_stack) - 1];
+			while (op_stack_index > 0) {
+				token_t top_op = op_stack[op_stack_index - 1];
 				bool should_pop = (curr_tok.type == EXP) ? (get_precedence(top_op.type) > get_precedence(curr_tok.type))
 																								 : (get_precedence(top_op.type) >= get_precedence(curr_tok.type));
 
 				if (!should_pop) break;
 
-				arr_pop(op_stack);
-				append_children(top_op, &node_stack, arena);
+				--op_stack_index;
+				append_children(top_op, &node_stack, &node_stack_index, arena);
 			}
 
-			arr_push(op_stack, curr_tok);
+			op_stack[op_stack_index++] = curr_tok;
 		}
 	}
 
-	while (arr_len(op_stack) > 0) {
-		token_t top_op = arr_pop(op_stack);
-		append_children(top_op, &node_stack, arena);
+	while (op_stack_index > 0) {
+		token_t top_op = op_stack[--op_stack_index];
+		append_children(top_op, &node_stack, &node_stack_index, arena);
 	}
 
-	if (arr_len(node_stack) == 1) root = node_stack[0];
+	if (node_stack_index == 1) root = node_stack[0];
 	else fputs("INVALID SYNTAX\n", stderr);
 
 end_create_tree:
-	arr_free(node_stack);
-	arr_free(op_stack);
+	arena_pop(arena, tokens_len * sizeof(node_t *));
+	arena_pop(arena, tokens_len * sizeof(token_t));
 
 	return root;
-}
-
-static inline double factorial(double value) {
-	uint64_t bound = (uint64_t)value;
-	uint64_t result = 1;
-
-	for (uint64_t n = 2; n <= bound; n++) result *= n;
-	return (double)result;
 }
 
 double solve_tree(node_t *root, bool *is_bool) {
@@ -144,7 +139,7 @@ double solve_tree(node_t *root, bool *is_bool) {
 				case '*': return left_val * right_val;
 				case '/': return left_val / right_val;
 				case '%': return fmod(left_val, right_val);
-				case '!': return factorial(left_val);
+				case '!': return tgamma(left_val + 1.0);
 			}
 			break;
 		case EXP: return pow(left_val, right_val);
