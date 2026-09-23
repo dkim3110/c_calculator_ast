@@ -42,8 +42,6 @@ static inline void append_children(token_t top_op, node_t ***node_stack, size_t 
 }
 
 node_t *create_tree(token_t *tokens, size_t tokens_len, mem_arena *arena) {
-	node_t *root = NULL;
-
 	node_t **node_stack = arena_alloc(arena, tokens_len * sizeof(node_t *));
 	size_t node_stack_index = 0;
 
@@ -55,7 +53,7 @@ node_t *create_tree(token_t *tokens, size_t tokens_len, mem_arena *arena) {
 
 		if (curr_tok.type == UNKNOWN) {
 			fputs("INVALID INPUT\n", stderr);
-			goto end_create_tree;
+			return NULL;
 		}
 
 		if ((curr_tok.type == ADD) && ((n == 0) || (tokens[n - 1].type == LPAREN))) {
@@ -101,10 +99,10 @@ node_t *create_tree(token_t *tokens, size_t tokens_len, mem_arena *arena) {
 		append_children(top_op, &node_stack, &node_stack_index, arena);
 	}
 
+	node_t *root = NULL;
 	if (node_stack_index == 1) root = node_stack[0];
 	else fputs("INVALID SYNTAX\n", stderr);
 
-end_create_tree:
 	return root;
 }
 

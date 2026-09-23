@@ -4,6 +4,19 @@
 
 A simple command-line utility to calculate basic expressions.
 
+## INSTALLATION:
+
+```bash
+# Build
+git clone
+cd my_calculator
+make
+
+# Deploy
+sudo make install
+# To uninstall, run 'sudo make uninstall'
+```
+
 ## USAGE:
 
 - Inputs must be wrapped in quotations (ex. `"(1 + 2) / 3"`)

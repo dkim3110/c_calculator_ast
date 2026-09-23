@@ -46,6 +46,15 @@ test: $(TESTTARGET)
 	@echo " "
 	@./$(TESTTARGET)
 
+install: $(TARGET)
+	@echo " Installing to $(PREFIX)/bin..."
+	@mkdir -p $(PREFIX)/bin
+	@install -m 755 $(TARGET) $(PREFIX)/bin/$(TARGET)
+
+uninstall:
+	@echo " Uninstalling from $(PREFIX)/bin..."
+	@$(RM) $(PREFIX)/bin/$(TARGET)
+
 -include $(DEPS)
 
-.PHONY: all clean debug test
+.PHONY: all clean debug test install uninstall
