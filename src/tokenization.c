@@ -25,7 +25,7 @@ static inline char consume(str source, size_t *src_index) {
 	return source.data[(*src_index)++];
 }
 
-static void handle_implicit_mult(token_t **tokens, token_t token, size_t t_len, size_t *tokens_index) {
+static inline void handle_implicit_mult(token_t **tokens, token_t token, size_t t_len, size_t *tokens_index) {
 	if (t_len > 0) {
 		token_type prev_type = (*tokens)[t_len - 1].type;
 
@@ -49,7 +49,7 @@ static void handle_implicit_mult(token_t **tokens, token_t token, size_t t_len, 
 	}
 }
 
-static void handle_constants(str word, token_t *token) {
+static inline void handle_constants(str word, token_t *token) {
 	switch (word.len) {
 		case 1:
 			switch (word.data[0]) {
@@ -97,7 +97,7 @@ static void handle_constants(str word, token_t *token) {
 	}
 }
 
-static void handle_functions(str word, token_t *token) {
+static inline void handle_functions(str word, token_t *token) {
 	switch (word.len) {
 		case 2:
 			switch (word.data[0]) {
