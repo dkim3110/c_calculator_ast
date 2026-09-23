@@ -1,6 +1,6 @@
 #include "expression_tree.h"
 #include "mem_arena.h"
-#include "string_view.h"
+#include "str_view.h"
 #include "tokenization.h"
 
 #include <float.h>
@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	size_t tokens_len = 0;
-	token_t *tokens = tokenize(to_str(argv[1]), perm_arena, &tokens_len);
+	token_t *tokens = tokenize(to_strv(argv[1]), perm_arena, &tokens_len);
 	if (!tokens) {
 		result = EXIT_FAILURE;
 		goto end_program;

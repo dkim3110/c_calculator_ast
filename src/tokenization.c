@@ -1,6 +1,6 @@
 #include "tokenization.h"
 #include "mem_arena.h"
-#include "string_view.h"
+#include "str_view.h"
 
 #include <ctype.h>
 #include <math.h>
@@ -13,14 +13,14 @@
 #define M_PHI 1.6180339887498948482
 #endif // M_PHI
 
-static inline char peek(str source, size_t *src_index) {
+static inline char peek(strv source, size_t *src_index) {
 	size_t foresight = (*src_index);
 	if (foresight >= source.len) return '\0';
 
 	return source.data[foresight];
 }
 
-static inline char consume(str source, size_t *src_index) {
+static inline char consume(strv source, size_t *src_index) {
 	if ((*src_index) >= source.len) return '\0';
 	return source.data[(*src_index)++];
 }
@@ -49,7 +49,7 @@ static inline void handle_implicit_mult(token_t **tokens, token_t token, size_t 
 	}
 }
 
-static inline void handle_constants(str word, token_t *token) {
+static inline void handle_constants(strv word, token_t *token) {
 	switch (word.len) {
 		case 1:
 			switch (word.data[0]) {
@@ -97,7 +97,7 @@ static inline void handle_constants(str word, token_t *token) {
 	}
 }
 
-static inline void handle_functions(str word, token_t *token) {
+static inline void handle_functions(strv word, token_t *token) {
 	switch (word.len) {
 		case 2:
 			switch (word.data[0]) {
@@ -160,7 +160,7 @@ static inline void handle_functions(str word, token_t *token) {
 
 			break;
 		case 6:
-			if (str_starts_with(word, (str){.data = "arc", .len = 3})) {
+			if (strv_prefix(word, (strv){.data = "arc", .len = 3})) {
 				switch (word.data[3]) {
 					case 's': // arcsin
 						token->type = FUNCTION;
@@ -183,7 +183,7 @@ static inline void handle_functions(str word, token_t *token) {
 	}
 }
 
-token_t *tokenize(str source, mem_arena *arena, size_t *tokens_index) {
+token_t *tokenize(strv source, mem_arena *arena, size_t *tokens_index) {
 	token_t *tokens = arena_alloc(arena, 2 * source.len * sizeof(token_t));
 	size_t src_index = 0;
 
@@ -245,10 +245,10 @@ token_t *tokenize(str source, mem_arena *arena, size_t *tokens_index) {
 					}
 
 					token.type = NUMBER;
-					token.num_val = str_to_dbl((str){.data = &source.data[start_index], .len = src_index - start_index});
+					token.num_val = strv_to_dbl((strv){.data = &source.data[start_index], .len = src_index - start_index});
 				} else if (isalpha(curr)) {
 					while (isalpha(peek(source, &src_index))) consume(source, &src_index);
-					str word = str_sub(source, start_index, src_index);
+					strv word = strv_sub(source, start_index, src_index);
 
 					if (peek(source, &src_index) == '(') handle_functions(word, &token);
 					handle_constants(word, &token);
