@@ -105,9 +105,6 @@ node_t *create_tree(token_t *tokens, size_t tokens_len, mem_arena *arena) {
 	else fputs("INVALID SYNTAX\n", stderr);
 
 end_create_tree:
-	arena_pop(arena, tokens_len * sizeof(node_t *));
-	arena_pop(arena, tokens_len * sizeof(token_t));
-
 	return root;
 }
 
