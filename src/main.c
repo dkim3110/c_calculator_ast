@@ -1,4 +1,3 @@
-#include "dynamic_array.h"
 #include "expression_tree.h"
 #include "mem_arena.h"
 #include "string_view.h"
@@ -28,7 +27,7 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
-	dyn_token_t *tokens = tokenize(to_str(argv[1]));
+	token_t *tokens = tokenize(to_str(argv[1]), perm_arena);
 	if (!tokens) {
 		result = EXIT_FAILURE;
 		goto end_program;
@@ -59,6 +58,5 @@ int main(int argc, char *argv[]) {
 
 end_program:
 	arena_destroy(perm_arena);
-	if (tokens) arr_free(tokens);
 	exit(result);
 }

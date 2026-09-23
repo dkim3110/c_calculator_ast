@@ -17,6 +17,7 @@ A simple command-line utility to calculate basic expressions.
 - `*`
 - `/`
 - `%`
+- `!`
 
 ### FUNCTIONS:
 

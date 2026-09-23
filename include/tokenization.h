@@ -1,9 +1,23 @@
 #ifndef TOKENIZATION_H_
 #define TOKENIZATION_H_
 
+#include "mem_arena.h"
 #include "string_view.h"
 
-typedef enum { UNKNOWN, NUMBER, CONSTANT, FUNCTION, ADD, MULT, EXP, EQUALS, LPAREN, RPAREN } token_type;
+typedef enum {
+	UNKNOWN,
+	NUMBER,
+	CONSTANT,
+	FUNCTION,
+	ADD,
+	MULT,
+	EXP,
+	FACTORIAL,
+	EQUALS,
+	LPAREN,
+	RPAREN,
+	END_TERMINATOR
+} token_type;
 
 typedef enum { UNKNOWN_FUNC, SQRT, SIN, COS, TAN, ASIN, ACOS, ATAN, ABS, LOG_E, LOG_10 } function_type;
 
@@ -14,11 +28,21 @@ typedef struct {
 	token_type type;
 } token_t;
 
-typedef token_t dyn_token_t;
+static const token_t NULL_TOKEN = (token_t){
+	.op = '\0',
+	.num_val = NAN,
+	.func = UNKNOWN_FUNC,
+	.type = UNKNOWN,
+};
 
-static const token_t NULL_TOKEN = (token_t){.type = UNKNOWN, .op = '\0', .func = UNKNOWN_FUNC, .num_val = NAN};
+static const token_t END_TOKEN = (token_t){
+	.op = '\0',
+	.num_val = NAN,
+	.func = UNKNOWN_FUNC,
+	.type = END_TERMINATOR,
+};
 
-extern dyn_token_t *tokenize(str source);
+extern token_t *tokenize(str source, mem_arena *arena);
 
 static inline bool token_equals(token_t a, token_t b) {
 	return (a.type == b.type);

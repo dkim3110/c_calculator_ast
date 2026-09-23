@@ -1,5 +1,5 @@
 #include "tokenization.h"
-#include "dynamic_array.h"
+#include "mem_arena.h"
 #include "string_view.h"
 
 #include <ctype.h>
@@ -25,7 +25,7 @@ static inline char consume(str source, size_t *src_index) {
 	return source.data[(*src_index)++];
 }
 
-static void handle_implicit_mult(dyn_token_t **tokens, token_t token, size_t t_len) {
+static void handle_implicit_mult(token_t **tokens, token_t token, size_t t_len, size_t *tokens_index) {
 	if (t_len > 0) {
 		token_type prev_type = (*tokens)[t_len - 1].type;
 
@@ -44,7 +44,7 @@ static void handle_implicit_mult(dyn_token_t **tokens, token_t token, size_t t_l
 
 		if (implicit_mult) {
 			token_t mult_tok = {.type = MULT, .op = '*'};
-			arr_push((*tokens), mult_tok);
+			(*tokens)[(*tokens_index)++] = mult_tok;
 		}
 	}
 }
@@ -183,8 +183,9 @@ static void handle_functions(str word, token_t *token) {
 	}
 }
 
-dyn_token_t *tokenize(str source) {
-	dyn_token_t *tokens = NULL;
+token_t *tokenize(str source, mem_arena *arena) {
+	token_t *tokens = arena_alloc(arena, 2 * source.len * sizeof(token_t));
+	size_t tokens_index = 0;
 	size_t src_index = 0;
 
 	while (peek(source, &src_index) != '\0') {
@@ -209,6 +210,10 @@ dyn_token_t *tokenize(str source) {
 				/* fallthrough */
 			case '%':
 				token.type = MULT;
+				token.op = curr;
+				break;
+			case '!':
+				token.type = FACTORIAL;
 				token.op = curr;
 				break;
 			case '^':
@@ -252,8 +257,10 @@ dyn_token_t *tokenize(str source) {
 				break;
 		}
 
-		handle_implicit_mult(&tokens, token, arr_len(tokens));
-		arr_push(tokens, token);
+		handle_implicit_mult(&tokens, token, tokens_index, &tokens_index);
+		tokens[tokens_index++] = token;
 	}
+
+	tokens[tokens_index] = END_TOKEN;
 	return tokens;
 }

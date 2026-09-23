@@ -5,15 +5,17 @@
 
 #include "float.h"
 #include <math.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 static inline int get_precedence(token_type type) {
 	switch (type) {
-		case ADD:			 return 1;
-		case MULT:		 return 2;
-		case EXP:			 return 3;
-		case FUNCTION: return 4;
-		default:			 return 0;
+		case ADD:				return 1;
+		case MULT:			return 2;
+		case EXP:				return 3;
+		case FACTORIAL: return 4;
+		case FUNCTION:	return 5;
+		default:				return 0;
 	}
 }
 
@@ -23,6 +25,10 @@ static inline node_t *create_node(token_t token, mem_arena *arena) {
 	if (!node) return NULL;
 
 	node->token = token;
+
+	node->is_unary_prefix = (token.type == FUNCTION);
+	node->is_unary_postfix = (token.type == FACTORIAL);
+
 	node->left = NULL;
 	node->right = NULL;
 
@@ -31,17 +37,17 @@ static inline node_t *create_node(token_t token, mem_arena *arena) {
 
 static inline void append_children(token_t top_op, dyn_node_t ***node_stack, mem_arena *arena) {
 	node_t *op_node = create_node(top_op, arena);
-	op_node->right = arr_pop((*node_stack));
-	op_node->left = (top_op.type != FUNCTION) ? arr_pop((*node_stack)) : NULL;
+	op_node->right = (op_node->is_unary_postfix) ? NULL : arr_pop((*node_stack));
+	op_node->left = (op_node->is_unary_prefix) ? NULL : arr_pop((*node_stack));
 	arr_push((*node_stack), op_node);
 }
 
-node_t *create_tree(dyn_token_t *tokens, mem_arena *arena) {
+node_t *create_tree(token_t *tokens, mem_arena *arena) {
 	dyn_node_t **node_stack = NULL;
-	dyn_token_t *op_stack = NULL;
+	token_t *op_stack = NULL;
 	node_t *root = NULL;
 
-	for (size_t n = 0; n < arr_len(tokens); n++) {
+	for (size_t n = 0; !token_equals(tokens[n], END_TOKEN); n++) {
 		token_t curr_tok = tokens[n];
 
 		if (curr_tok.type == UNKNOWN) {
@@ -102,6 +108,14 @@ end_create_tree:
 	return root;
 }
 
+static inline double factorial(double value) {
+	uint64_t bound = (uint64_t)value;
+	uint64_t result = 1;
+
+	for (uint64_t n = 2; n <= bound; n++) result *= n;
+	return (double)result;
+}
+
 double solve_tree(node_t *root, bool *is_bool) {
 	if (!root) return NAN;
 
@@ -112,8 +126,8 @@ double solve_tree(node_t *root, bool *is_bool) {
 		default:			 break;
 	}
 
-	double left_val = (root->token.type != FUNCTION) ? solve_tree(root->left, is_bool) : 0.0;
-	double right_val = solve_tree(root->right, is_bool);
+	double left_val = (root->is_unary_prefix) ? NAN : solve_tree(root->left, is_bool);
+	double right_val = (root->is_unary_postfix) ? NAN : solve_tree(root->right, is_bool);
 
 	switch (root->token.type) {
 		case EQUALS:
@@ -121,6 +135,8 @@ double solve_tree(node_t *root, bool *is_bool) {
 		case ADD:
 			/* fallthrough */
 		case MULT:
+			/* fallthrough */
+		case FACTORIAL:
 			switch (root->token.op) {
 				case '=': (*is_bool) = true; return fabs(left_val - right_val) <= DBL_EPSILON;
 				case '+': return left_val + right_val;
@@ -128,6 +144,7 @@ double solve_tree(node_t *root, bool *is_bool) {
 				case '*': return left_val * right_val;
 				case '/': return left_val / right_val;
 				case '%': return fmod(left_val, right_val);
+				case '!': return factorial(left_val);
 			}
 			break;
 		case EXP: return pow(left_val, right_val);
