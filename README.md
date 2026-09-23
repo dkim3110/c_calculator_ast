@@ -8,8 +8,8 @@ A simple command-line utility to calculate basic expressions.
 
 ```bash
 # Build
-git clone
-cd my_calculator
+git clone https://github.com/dkim3110/c_calculator_ast.git
+cd c_calculator_ast
 make
 
 # Deploy
