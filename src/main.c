@@ -48,7 +48,10 @@ int main(int argc, char *argv[]) {
 		goto end_program;
 	}
 
-	if (failed) goto end_program;
+	if (failed) {
+		result = EXIT_FAILURE;
+		goto end_program;
+	}
 
 	fputs("ANSWER: ", stdout);
 	if (is_bool) {
