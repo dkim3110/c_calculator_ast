@@ -106,7 +106,7 @@ node_t *create_tree(token_t *tokens, size_t tokens_len, mem_arena *arena) {
 	return root;
 }
 
-double solve_tree(node_t *root, bool *is_bool) {
+double solve_tree(node_t *root, bool *is_bool, bool *failed) {
 	if (!root) return NAN;
 
 	switch (root->token.type) {
@@ -116,8 +116,8 @@ double solve_tree(node_t *root, bool *is_bool) {
 		default:			 break;
 	}
 
-	double left_val = (root->is_unary_prefix) ? NAN : solve_tree(root->left, is_bool);
-	double right_val = (root->is_unary_postfix) ? NAN : solve_tree(root->right, is_bool);
+	double left_val = (root->is_unary_prefix) ? NAN : solve_tree(root->left, is_bool, failed);
+	double right_val = (root->is_unary_postfix) ? NAN : solve_tree(root->right, is_bool, failed);
 
 	switch (root->token.type) {
 		case EQUALS:
@@ -140,20 +140,23 @@ double solve_tree(node_t *root, bool *is_bool) {
 		case EXP: return pow(left_val, right_val);
 		case FUNCTION:
 			switch (root->token.func) {
-				case SQRT:	 return sqrt(right_val);
+				case HASH_SQRT:		return sqrt(right_val);
 
-				case SIN:		 return sin(right_val);
-				case COS:		 return cos(right_val);
-				case TAN:		 return tan(right_val);
+				case HASH_SIN:		return sin(right_val);
+				case HASH_COS:		return cos(right_val);
+				case HASH_TAN:		return tan(right_val);
 
-				case ASIN:	 return asin(right_val);
-				case ACOS:	 return acos(right_val);
-				case ATAN:	 return atan(right_val);
+				case HASH_ASIN:		return asin(right_val);
+				case HASH_ACOS:		return acos(right_val);
+				case HASH_ATAN:		return atan(right_val);
 
-				case ABS:		 return fabs(right_val);
-				case LOG_E:	 return log(right_val);
-				case LOG_10: return log10(right_val);
-				default:		 return NAN;
+				case HASH_ABS:		return fabs(right_val);
+				case HASH_LOG_E:	return log(right_val);
+				case HASH_LOG_10: return log10(right_val);
+				default:
+					fputs("INVALID INPUT\n", stderr);
+					(*failed) = true;
+					return NAN;
 			}
 			break;
 		default: return NAN;

@@ -2,16 +2,19 @@
 CC := gcc
 SRCDIR := src
 BUILDDIR := build
+TESTBUILDDIR := $(BUILDDIR)/tests
 TESTDIR := tests
-TARGET := bin/calc
+TARGET := bin/run
 TESTTARGET := bin/tester
 SRCEXT := c
 SOURCES := $(shell find $(SRCDIR) -type f -name '*.$(SRCEXT)')
 TESTSOURCES := $(wildcard $(TESTDIR)/*.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
+TESTOBJECTS  := $(patsubst $(TESTDIR)/%,$(TESTBUILDDIR)/%,$(TESTSOURCES:.$(SRCEXT)=.o))
 DEPS := $(OBJECTS:.o=.d)
+TESTDEPS := $(TESTOBJECTS:.o=.d)
 LIBOBJECTS := $(filter-out $(BUILDDIR)/main.o,$(OBJECTS))
-CFLAGS := -O1 -Wall -Wextra
+CFLAGS := -O1 -Wall -Wextra -std=c23 -D_GNU_SOURCE
 LIB := -L lib -lm
 INC := -I include
 
@@ -36,25 +39,22 @@ clean:
 	@find $(BUILDDIR) -type f -delete
 	@$(RM) $(TARGET) $(TESTTARGET)
 
-$(TESTTARGET): $(TESTSOURCES) $(LIBOBJECTS)
+$(TESTBUILDDIR)/%.o: $(TESTDIR)/%.$(SRCEXT)
 	@echo " Building tests..."
 	@mkdir -p $(dir $@)
-	@$(CC) $(CFLAGS) $(INC) $^ -o $@ $(LIB)
+	@$(CC) $(CFLAGS) $(INC) -MMD -MP -c $< -o $@
+
+$(TESTTARGET): $(LIBOBJECTS) $(TESTOBJECTS)
+	@echo " Linking tests..."
+	@mkdir -p $(dir $@)
+	@$(CC) $^ -o $@ $(LIB)
 
 test: $(TESTTARGET)
 	@echo " Running tests..."
-	@echo " "
+	@echo ""
 	@./$(TESTTARGET)
 
-install: $(TARGET)
-	@echo " Installing to $(PREFIX)/bin..."
-	@mkdir -p $(PREFIX)/bin
-	@install -m 755 $(TARGET) $(PREFIX)/bin/$(TARGET)
-
-uninstall:
-	@echo " Uninstalling from $(PREFIX)/bin..."
-	@$(RM) $(PREFIX)/bin/$(TARGET)
-
 -include $(DEPS)
+-include $(TESTDEPS)
 
-.PHONY: all clean debug test install uninstall
+.PHONY: all clean debug test

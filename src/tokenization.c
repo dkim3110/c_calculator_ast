@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <math.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,6 +13,13 @@
 #ifndef M_PHI
 #define M_PHI 1.6180339887498948482
 #endif // M_PHI
+
+#define HASH_E	 (1701593959)
+#define HASH_PI	 (3712905052)
+#define HASH_TAU (690548749)
+#define HASH_PHI (1073095556)
+#define HASH_NAN (605416826)
+#define HASH_INF (1234765051)
 
 static inline char peek(strv source, size_t *src_index) {
 	size_t foresight = (*src_index);
@@ -50,136 +58,15 @@ static inline void handle_implicit_mult(token_t **tokens, token_t token, size_t 
 }
 
 static inline void handle_constants(strv word, token_t *token) {
-	switch (word.len) {
-		case 1:
-			switch (word.data[0]) {
-				case 'e': // euler's number
-					token->type = CONSTANT;
-					token->num_val = M_E;
-					break;
-			}
-			break;
-		case 2:
-			switch (word.data[0]) {
-				case 'p':
-					if (word.data[1] == 'i') { // pi
-						token->type = CONSTANT;
-						token->num_val = M_PI;
-					}
-					break;
-				default: break;
-			}
-			break;
-		case 3:
-			switch (word.data[0]) {
-				case 'p':
-					if ((word.data[1] == 'h') && (word.data[2] == 'i')) { // phi
-						token->type = CONSTANT;
-						token->num_val = M_PHI;
-					}
-					break;
-				case 't':
-					if ((word.data[1] == 'a') && (word.data[2] == 'u')) { // tau
-						token->type = CONSTANT;
-						token->num_val = M_PI * 2;
-					}
-					break;
-				case 'i':
-					if ((word.data[1] == 'n') && (word.data[2] == 'f')) { // inf
-						token->type = CONSTANT;
-						token->num_val = INFINITY;
-					}
-					break;
-				default: break;
-			}
-			break;
-		default: break;
-	}
-}
-
-static inline void handle_functions(strv word, token_t *token) {
-	switch (word.len) {
-		case 2:
-			switch (word.data[0]) {
-				case 'l':
-					if (word.data[1] == 'n') { // ln
-						token->type = FUNCTION;
-						token->func = LOG_E;
-					}
-					break;
-				default: break;
-			}
-
-			break;
-		case 3:
-			switch (word.data[0]) {
-				case 's':
-					if ((word.data[1] == 'i') && (word.data[2] == 'n')) { // sin
-						token->type = FUNCTION;
-						token->func = SIN;
-					}
-					break;
-				case 'c':
-					if ((word.data[1] == 'o') && (word.data[2] == 's')) { // cos
-						token->type = FUNCTION;
-						token->func = COS;
-					}
-					break;
-				case 't':
-					if ((word.data[1] == 'a') && (word.data[2] == 'n')) { // tan
-						token->type = FUNCTION;
-						token->func = TAN;
-					}
-					break;
-				case 'a':
-					if ((word.data[1] == 'b') && (word.data[2] == 's')) { // abs
-						token->type = FUNCTION;
-						token->func = ABS;
-					}
-					break;
-				case 'l':
-					if ((word.data[1] == 'o') && (word.data[2] == 'g')) { // log
-						token->type = FUNCTION;
-						token->func = LOG_10;
-					}
-					break;
-				default: break;
-			}
-
-			break;
-		case 4:
-			switch (word.data[0]) {
-				case 's':
-					if ((word.data[1] == 'q') && (word.data[2] == 'r') && (word.data[3] == 't')) { // sqrt
-						token->type = FUNCTION;
-						token->func = SQRT;
-					}
-					break;
-				default: break;
-			}
-
-			break;
-		case 6:
-			if (strv_prefix(word, (strv){.data = "arc", .len = 3})) {
-				switch (word.data[3]) {
-					case 's': // arcsin
-						token->type = FUNCTION;
-						token->func = ASIN;
-						break;
-					case 'c': // arccos
-						token->type = FUNCTION;
-						token->func = ACOS;
-						break;
-					case 't': // arctan
-						token->type = FUNCTION;
-						token->func = ATAN;
-						break;
-					default: break;
-				}
-			}
-
-			break;
-		default: break;
+	token->type = CONSTANT;
+	switch (strv_hash(word)) {
+		case HASH_E:	 token->num_val = M_E; break;
+		case HASH_PI:	 token->num_val = M_PI; break;
+		case HASH_TAU: token->num_val = M_PI * 2; break;
+		case HASH_PHI: token->num_val = M_PHI; break;
+		case HASH_NAN: token->num_val = NAN; break;
+		case HASH_INF: token->num_val = INFINITY; break;
+		default:			 token->type = UNKNOWN; break;
 	}
 }
 
@@ -250,7 +137,11 @@ token_t *tokenize(strv source, mem_arena *arena, size_t *tokens_index) {
 					while (isalpha(peek(source, &src_index))) consume(source, &src_index);
 					strv word = strv_sub(source, start_index, src_index);
 
-					if (peek(source, &src_index) == '(') handle_functions(word, &token);
+					if (peek(source, &src_index) == '(') {
+						token.type = FUNCTION;
+						token.func = strv_hash(word);
+					}
+
 					handle_constants(word, &token);
 				}
 				break;

@@ -40,13 +40,15 @@ int main(int argc, char *argv[]) {
 		goto end_program;
 	}
 
-	bool is_bool = false;
-	double final_num = solve_tree(root, &is_bool);
+	bool is_bool = false, failed = false;
+	double final_num = solve_tree(root, &is_bool, &failed);
 	if (isnan(final_num)) {
 		fputs("CALCULATION FAILURE\n", stderr);
 		result = EXIT_FAILURE;
 		goto end_program;
 	}
+
+	if (failed) goto end_program;
 
 	fputs("ANSWER: ", stdout);
 	if (is_bool) {
