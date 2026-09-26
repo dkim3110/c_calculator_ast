@@ -51,8 +51,9 @@ static inline void handle_implicit_mult(token_t **tokens, token_t token, size_t 
 }
 
 static inline void match_constants(strv word, token_t *token) {
-#define W				 word.data
-#define WC(n, c) (word.data[(n)] == (c))
+#define W					 word.data
+#define WC(n, c)	 (word.data[(n)] == (c))
+#define IS_UNKNOWN token->type = UNKNOWN
 
 	token->type = CONSTANT;
 	// clang-format off
@@ -65,16 +66,16 @@ static inline void match_constants(strv word, token_t *token) {
 			break;
 		case 2:
 			switch (W[0]) {
-				case 'p': if (WC(1,'i')) token->num_val = M_PI; else token->type = UNKNOWN; break;
+				case 'p': if (WC(1,'i')) token->num_val = M_PI; else IS_UNKNOWN; break;
 				default:  token->type = UNKNOWN; break;
 			}
 			break;
 		case 3:
 			switch (W[0]) {
-				case 'i': if (WC(1,'n') && WC(2,'f')) token->num_val = INFINITY; else token->type = UNKNOWN; break;
-				case 'n': if (WC(1,'a') && WC(2,'n')) token->num_val = NAN; else token->type = UNKNOWN; break;
-				case 'p': if (WC(1,'h') && WC(2,'i')) token->num_val = M_PHI; else token->type = UNKNOWN; break;
-				case 't': if (WC(1,'a') && WC(2,'u')) token->num_val = M_PI * 2; else token->type = UNKNOWN; break;
+				case 'i': if (WC(1,'n') && WC(2,'f')) token->num_val = INFINITY; else IS_UNKNOWN; break;
+				case 'n': if (WC(1,'a') && WC(2,'n')) token->num_val = NAN; else IS_UNKNOWN; break;
+				case 'p': if (WC(1,'h') && WC(2,'i')) token->num_val = M_PHI; else IS_UNKNOWN; break;
+				case 't': if (WC(1,'a') && WC(2,'u')) token->num_val = M_PI * 2; else IS_UNKNOWN; break;
 				default:  token->type = UNKNOWN; break;
 			}
 			break;
@@ -84,43 +85,45 @@ static inline void match_constants(strv word, token_t *token) {
 
 #undef W
 #undef WC
+#undef IS_UNKNOWN
 }
 
 static inline void match_functions(strv word, token_t *token) {
-#define W				 word.data
-#define WC(n, c) (word.data[(n)] == (c))
+#define W					 word.data
+#define WC(n, c)	 (word.data[(n)] == (c))
+#define IS_UNKNOWN token->type = UNKNOWN
 
 	token->type = FUNCTION;
 	// clang-format off
 	switch (word.len) {
 		case 2:
 			switch (W[0]) {
-				case 'l': if (WC(1,'n')) token->func = LOG_E; else token->type = UNKNOWN; break;
+				case 'l': if (WC(1,'n')) token->func = LOG_E; else IS_UNKNOWN; break;
 				default:  token->type = UNKNOWN; break;
 			}
 			break;
 		case 3:
 			switch (W[0]) {
-				case 'a': if (WC(1,'b') && WC(2,'s')) token->func = ABS; else token->type = UNKNOWN; break;
-				case 'c': if (WC(1,'o') && WC(2,'s')) token->func = COS; else token->type = UNKNOWN; break;
-				case 'l': if (WC(1,'o') && WC(2,'g')) token->func = LOG_10; else token->type = UNKNOWN; break;
-				case 's': if (WC(1,'i') && WC(2,'n')) token->func = SIN; else token->type = UNKNOWN; break;
-				case 't': if (WC(1,'a') && WC(2,'n')) token->func = TAN; else token->type = UNKNOWN; break;
+				case 'a': if (WC(1,'b') && WC(2,'s')) token->func = ABS; else IS_UNKNOWN; break;
+				case 'c': if (WC(1,'o') && WC(2,'s')) token->func = COS; else IS_UNKNOWN; break;
+				case 'l': if (WC(1,'o') && WC(2,'g')) token->func = LOG_10; else IS_UNKNOWN; break;
+				case 's': if (WC(1,'i') && WC(2,'n')) token->func = SIN; else IS_UNKNOWN; break;
+				case 't': if (WC(1,'a') && WC(2,'n')) token->func = TAN; else IS_UNKNOWN; break;
 				default:  token->type = UNKNOWN; break;
 			}
 			break;
 		case 4:
 			switch (W[0]) {
-				case 's': if (WC(1,'q') && WC(2,'r') && WC(3,'t')) token->func = SQRT; else token->type = UNKNOWN; break;
+				case 's': if (WC(1,'q') && WC(2,'r') && WC(3,'t')) token->func = SQRT; else IS_UNKNOWN; break;
 				default:  token->type = UNKNOWN; break;
 			}
 			break;
 		case 6:
 			if (strv_prefix(word, lit_to_strv("arc"))) {
 				switch (W[3]) {
-					case 'c': if (WC(4,'o') && WC(5,'s')) token->func = ACOS; else token->type = UNKNOWN; break;
-					case 's': if (WC(4,'i') && WC(5,'n')) token->func = ASIN; else token->type = UNKNOWN; break;
-					case 't': if (WC(4,'a') && WC(5,'n')) token->func = ATAN; else token->type = UNKNOWN; break;
+					case 'c': if (WC(4,'o') && WC(5,'s')) token->func = ACOS; else IS_UNKNOWN; break;
+					case 's': if (WC(4,'i') && WC(5,'n')) token->func = ASIN; else IS_UNKNOWN; break;
+					case 't': if (WC(4,'a') && WC(5,'n')) token->func = ATAN; else IS_UNKNOWN; break;
 					default:  token->type = UNKNOWN; break;
 				}
 			}
@@ -131,6 +134,7 @@ static inline void match_functions(strv word, token_t *token) {
 
 #undef W
 #undef WC
+#undef IS_UNKNOWN
 }
 
 token_t *tokenize(strv source, mem_arena *arena, size_t *tokens_index) {
