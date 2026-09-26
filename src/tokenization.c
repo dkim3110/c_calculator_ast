@@ -198,7 +198,7 @@ token_t *tokenize(strv source, mem_arena *arena, size_t *tokens_index) {
 
 					if (peek(source, &src_index) == '(') match_functions(word, &token);
 					else match_constants(word, &token);
-				}
+				} else token.type = UNKNOWN;
 				break;
 		}
 
