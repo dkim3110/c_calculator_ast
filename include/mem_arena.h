@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -86,7 +87,11 @@ static inline void *arena_allocation_impl(mem_arena *arena, uint64_t size, bool 
 	uint64_t pos_align = ALIGN_UP_POW2(arena->pos, ARENA_ALIGN);
 	uint64_t new_pos = pos_align + size;
 
-	if (new_pos > arena->cap) return NULL;
+	if (new_pos > arena->cap) {
+		fputs("-fatal: failed to allocate memory\n", stderr);
+		exit(EXIT_FAILURE);
+	}
+
 	arena->pos = new_pos;
 
 	uint8_t *out = (uint8_t *)arena + pos_align;
