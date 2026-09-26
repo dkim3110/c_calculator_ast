@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
 		goto end_program;
 	}
 
-	puts("ANSWER: ");
+	fputs("ANSWER: ", stdout);
 	if (is_bool) printf("%s\n", (final_num) ? "TRUE" : "FALSE");
 	else printf("%.*f\n", ANS_ACCURACY, final_num);
 

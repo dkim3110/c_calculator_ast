@@ -147,6 +147,14 @@ double solve_tree(node_t *root, bool *is_bool, bool *failed) {
 				case COS:		 return cos(right_val);
 				case TAN:		 return tan(right_val);
 
+				case CSC:		 return 1.0 / sin(right_val);
+				case SEC:		 return 1.0 / cos(right_val);
+				case COT:		 return 1.0 / tan(right_val);
+
+				case SINH:	 return sinh(right_val);
+				case COSH:	 return cosh(right_val);
+				case TANH:	 return tanh(right_val);
+
 				case ASIN:	 return asin(right_val);
 				case ACOS:	 return acos(right_val);
 				case ATAN:	 return atan(right_val);

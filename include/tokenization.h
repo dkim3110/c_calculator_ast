@@ -20,7 +20,25 @@ typedef enum {
 	END_TERMINATOR
 } token_type;
 
-typedef enum { UNKNOWN_FUNC, SQRT, SIN, COS, TAN, ASIN, ACOS, ATAN, ABS, LOG_E, LOG_10 } function_type;
+typedef enum {
+	UNKNOWN_FUNC,
+	SQRT,
+	SIN,
+	COS,
+	TAN,
+	SEC,
+	CSC,
+	COT,
+	ASIN,
+	ACOS,
+	ATAN,
+	SINH,
+	COSH,
+	TANH,
+	ABS,
+	LOG_E,
+	LOG_10
+} function_type;
 
 typedef struct {
 	char op;

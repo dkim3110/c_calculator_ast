@@ -61,25 +61,21 @@ static inline void match_constants(strv word, token_t *token) {
 		case 1:
 			switch (W[0]) {
 				case 'e': token->num_val = M_E; break;
-				default:	token->type = UNKNOWN; break;
-			}
-			break;
+				default:	IS_UNKNOWN; break;
+			} break;
 		case 2:
 			switch (W[0]) {
 				case 'p': if (WC(1,'i')) token->num_val = M_PI; else IS_UNKNOWN; break;
-				default:  token->type = UNKNOWN; break;
-			}
-			break;
+				default:  IS_UNKNOWN; break;
+			} break;
 		case 3:
 			switch (W[0]) {
 				case 'i': if (WC(1,'n') && WC(2,'f')) token->num_val = INFINITY; else IS_UNKNOWN; break;
-				case 'n': if (WC(1,'a') && WC(2,'n')) token->num_val = NAN; else IS_UNKNOWN; break;
 				case 'p': if (WC(1,'h') && WC(2,'i')) token->num_val = M_PHI; else IS_UNKNOWN; break;
 				case 't': if (WC(1,'a') && WC(2,'u')) token->num_val = M_PI * 2; else IS_UNKNOWN; break;
-				default:  token->type = UNKNOWN; break;
-			}
-			break;
-		default:  token->type = UNKNOWN; break;
+				default:  IS_UNKNOWN; break;
+			} break;
+		default:  IS_UNKNOWN; break;
 	}
 		// clang-format on
 
@@ -99,36 +95,56 @@ static inline void match_functions(strv word, token_t *token) {
 		case 2:
 			switch (W[0]) {
 				case 'l': if (WC(1,'n')) token->func = LOG_E; else IS_UNKNOWN; break;
-				default:  token->type = UNKNOWN; break;
-			}
-			break;
+				default:  IS_UNKNOWN; break;
+			} break;
 		case 3:
 			switch (W[0]) {
 				case 'a': if (WC(1,'b') && WC(2,'s')) token->func = ABS; else IS_UNKNOWN; break;
-				case 'c': if (WC(1,'o') && WC(2,'s')) token->func = COS; else IS_UNKNOWN; break;
+				case 'c':
+					switch (W[1]) {
+						case 'o':
+							switch (W[2]) {
+								case 's': token->func = SIN; break;
+								case 't': token->func = CSC; break;
+								default:  IS_UNKNOWN; break;
+							} break;
+						case 's': if (WC(2,'c')) token->func = CSC; else IS_UNKNOWN; break;
+						default:  IS_UNKNOWN; break;
+					} break;
 				case 'l': if (WC(1,'o') && WC(2,'g')) token->func = LOG_10; else IS_UNKNOWN; break;
-				case 's': if (WC(1,'i') && WC(2,'n')) token->func = SIN; else IS_UNKNOWN; break;
+				case 's':
+					switch (W[1]) {
+						case 'i': if (WC(2,'n')) token->func = SIN; else IS_UNKNOWN; break;
+						case 'e': if (WC(2,'c')) token->func = SEC; else IS_UNKNOWN; break;
+						default:  IS_UNKNOWN; break;
+					} break;
 				case 't': if (WC(1,'a') && WC(2,'n')) token->func = TAN; else IS_UNKNOWN; break;
-				default:  token->type = UNKNOWN; break;
-			}
-			break;
+				default:  IS_UNKNOWN; break;
+			} break;
 		case 4:
 			switch (W[0]) {
-				case 's': if (WC(1,'q') && WC(2,'r') && WC(3,'t')) token->func = SQRT; else IS_UNKNOWN; break;
-				default:  token->type = UNKNOWN; break;
-			}
-			break;
+				case 's':
+					switch (W[1]) {
+						case 'q': if (WC(2,'r') && WC(3,'t')) token->func = SQRT; else IS_UNKNOWN; break;
+						case 'i': if (WC(2,'n') && WC(3,'h')) token->func = SINH; else IS_UNKNOWN; break;
+						default:  IS_UNKNOWN; break;
+					}
+					break;
+				case 'c': if (WC(1,'o') && WC(2,'s') && WC(3,'h')) token->func = COSH; else IS_UNKNOWN; break;
+				case 't': if (WC(1,'a') && WC(2,'n') && WC(3,'h')) token->func = TANH; else IS_UNKNOWN; break;
+				default:  IS_UNKNOWN; break;
+			} break;
 		case 6:
 			if (strv_prefix(word, lit_to_strv("arc"))) {
 				switch (W[3]) {
 					case 'c': if (WC(4,'o') && WC(5,'s')) token->func = ACOS; else IS_UNKNOWN; break;
 					case 's': if (WC(4,'i') && WC(5,'n')) token->func = ASIN; else IS_UNKNOWN; break;
 					case 't': if (WC(4,'a') && WC(5,'n')) token->func = ATAN; else IS_UNKNOWN; break;
-					default:  token->type = UNKNOWN; break;
+					default:  IS_UNKNOWN; break;
 				}
-			}
+			} else IS_UNKNOWN;
 			break;
-		default: token->type = UNKNOWN; break;
+		default: IS_UNKNOWN; break;
 	}
 		// clang-format on
 
