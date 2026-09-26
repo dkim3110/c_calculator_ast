@@ -2,7 +2,7 @@
 #include "mem_arena.h"
 #include "tokenization.h"
 
-#include "float.h"
+#include <float.h>
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
