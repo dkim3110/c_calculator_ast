@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
-	mem_arena *perm_arena = arena_init(MiB(1));
+	mem_arena *perm_arena = arena_new();
 	if (!perm_arena) {
 		fputs("NOTHING TO CALCULATE\n", stderr);
 		exit(EXIT_FAILURE);
