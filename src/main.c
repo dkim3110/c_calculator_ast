@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define ANS_ACCURACY (3)
+
 int main(int argc, char *argv[]) {
 	int result = EXIT_SUCCESS;
 
@@ -53,14 +55,9 @@ int main(int argc, char *argv[]) {
 		goto end_program;
 	}
 
-	fputs("ANSWER: ", stdout);
-	if (is_bool) {
-		printf("%s\n", (final_num) ? "TRUE" : "FALSE");
-	} else if (fabs((fmod(final_num, 1.0))) <= DBL_EPSILON) {
-		printf("%.0f\n", final_num);
-	} else {
-		printf("%.*f\n", 3, final_num);
-	}
+	puts("ANSWER: ");
+	if (is_bool) printf("%s\n", (final_num) ? "TRUE" : "FALSE");
+	else printf("%.*f\n", ANS_ACCURACY, final_num);
 
 end_program:
 	arena_destroy(perm_arena);

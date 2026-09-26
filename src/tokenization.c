@@ -81,44 +81,20 @@ token_t *tokenize(strv source, mem_arena *arena, size_t *tokens_index) {
 		consume(source, &src_index);
 
 		if (isspace(curr)) continue;
+		token.op = curr;
 
 		switch (curr) {
-			// -- operators ------------------------------------------------------------
-			case '+':
-				/* fallthrough */
-			case '-':
-				token.type = ADD;
-				token.op = curr;
-				break;
-			case '*':
-				/* fallthrough */
-			case '/':
-				/* fallthrough */
-			case '%':
-				token.type = MULT;
-				token.op = curr;
-				break;
-			case '!':
-				token.type = FACTORIAL;
-				token.op = curr;
-				break;
-			case '^':
-				token.type = EXP;
-				token.op = curr;
-				break;
-			case '=':
-				token.type = EQUALS;
-				token.op = curr;
-				break;
-			case '(':
-				token.type = LPAREN;
-				token.op = curr;
-				break;
-			case ')':
-				token.type = RPAREN;
-				token.op = curr;
-				break;
-				// ------------------------------------------------------------ operators --
+			case '+': /* fallthrough */
+			case '-': token.type = ADD; break;
+			case '*': /* fallthrough */
+			case '/': /* fallthrough */
+			case '%': token.type = MULT; break;
+			case '!': token.type = FACTORIAL; break;
+			case '^': token.type = EXP; break;
+			case '=': token.type = EQUALS; break;
+			case '(': token.type = LPAREN; break;
+			case ')': token.type = RPAREN; break;
+
 			default:
 				if (isdigit(curr)) {
 					bool has_decimal = false;
@@ -140,9 +116,7 @@ token_t *tokenize(strv source, mem_arena *arena, size_t *tokens_index) {
 					if (peek(source, &src_index) == '(') {
 						token.type = FUNCTION;
 						token.func = strv_hash(word);
-					}
-
-					handle_constants(word, &token);
+					} else handle_constants(word, &token);
 				}
 				break;
 		}
