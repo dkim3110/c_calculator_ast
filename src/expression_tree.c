@@ -141,19 +141,19 @@ double solve_tree(node_t *root, bool *is_bool, bool *failed) {
 		case EXP: return pow(left_val, right_val);
 		case FUNCTION:
 			switch (root->token.func) {
-				case HASH_SQRT:		return sqrt(right_val);
+				case SQRT:	 return sqrt(right_val);
 
-				case HASH_SIN:		return sin(right_val);
-				case HASH_COS:		return cos(right_val);
-				case HASH_TAN:		return tan(right_val);
+				case SIN:		 return sin(right_val);
+				case COS:		 return cos(right_val);
+				case TAN:		 return tan(right_val);
 
-				case HASH_ASIN:		return asin(right_val);
-				case HASH_ACOS:		return acos(right_val);
-				case HASH_ATAN:		return atan(right_val);
+				case ASIN:	 return asin(right_val);
+				case ACOS:	 return acos(right_val);
+				case ATAN:	 return atan(right_val);
 
-				case HASH_ABS:		return fabs(right_val);
-				case HASH_LOG_E:	return log(right_val);
-				case HASH_LOG_10: return log10(right_val);
+				case ABS:		 return fabs(right_val);
+				case LOG_E:	 return log(right_val);
+				case LOG_10: return log10(right_val);
 
 				default:
 					fputs("INVALID INPUT\n", stderr);

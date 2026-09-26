@@ -14,13 +14,6 @@
 #define M_PHI 1.6180339887498948482
 #endif // M_PHI
 
-#define HASH_E	 (1701593959)
-#define HASH_PI	 (3712905052)
-#define HASH_TAU (690548749)
-#define HASH_PHI (1073095556)
-#define HASH_NAN (605416826)
-#define HASH_INF (1234765051)
-
 static inline char peek(strv source, size_t *src_index) {
 	size_t foresight = (*src_index);
 	if (foresight >= source.len) return '\0';
@@ -57,17 +50,87 @@ static inline void handle_implicit_mult(token_t **tokens, token_t token, size_t 
 	}
 }
 
-static inline void handle_constants(strv word, token_t *token) {
+static inline void match_constants(strv word, token_t *token) {
+#define W				 word.data
+#define WC(n, c) (word.data[(n)] == (c))
+
 	token->type = CONSTANT;
-	switch (strv_hash(word)) {
-		case HASH_E:	 token->num_val = M_E; break;
-		case HASH_PI:	 token->num_val = M_PI; break;
-		case HASH_TAU: token->num_val = M_PI * 2; break;
-		case HASH_PHI: token->num_val = M_PHI; break;
-		case HASH_NAN: token->num_val = NAN; break;
-		case HASH_INF: token->num_val = INFINITY; break;
-		default:			 token->type = UNKNOWN; break;
+	// clang-format off
+	switch (word.len) {
+		case 1:
+			switch (W[0]) {
+				case 'e': token->num_val = M_E; break;
+				default:	token->type = UNKNOWN; break;
+			}
+			break;
+		case 2:
+			switch (W[0]) {
+				case 'p': if (WC(1,'i')) token->num_val = M_PI; else token->type = UNKNOWN; break;
+				default:  token->type = UNKNOWN; break;
+			}
+			break;
+		case 3:
+			switch (W[0]) {
+				case 'i': if (WC(1,'n') && WC(2,'f')) token->num_val = INFINITY; else token->type = UNKNOWN; break;
+				case 'n': if (WC(1,'a') && WC(2,'n')) token->num_val = NAN; else token->type = UNKNOWN; break;
+				case 'p': if (WC(1,'h') && WC(2,'i')) token->num_val = M_PHI; else token->type = UNKNOWN; break;
+				case 't': if (WC(1,'a') && WC(2,'u')) token->num_val = M_PI * 2; else token->type = UNKNOWN; break;
+				default:  token->type = UNKNOWN; break;
+			}
+			break;
+		default:  token->type = UNKNOWN; break;
 	}
+		// clang-format on
+
+#undef W
+#undef WC
+}
+
+static inline void match_functions(strv word, token_t *token) {
+#define W				 word.data
+#define WC(n, c) (word.data[(n)] == (c))
+
+	token->type = FUNCTION;
+	// clang-format off
+	switch (word.len) {
+		case 2:
+			switch (W[0]) {
+				case 'l': if (WC(1,'n')) token->func = LOG_E; else token->type = UNKNOWN; break;
+				default:  token->type = UNKNOWN; break;
+			}
+			break;
+		case 3:
+			switch (W[0]) {
+				case 'a': if (WC(1,'b') && WC(2,'s')) token->func = ABS; else token->type = UNKNOWN; break;
+				case 'c': if (WC(1,'o') && WC(2,'s')) token->func = COS; else token->type = UNKNOWN; break;
+				case 'l': if (WC(1,'o') && WC(2,'g')) token->func = LOG_10; else token->type = UNKNOWN; break;
+				case 's': if (WC(1,'i') && WC(2,'n')) token->func = SIN; else token->type = UNKNOWN; break;
+				case 't': if (WC(1,'a') && WC(2,'n')) token->func = TAN; else token->type = UNKNOWN; break;
+				default:  token->type = UNKNOWN; break;
+			}
+			break;
+		case 4:
+			switch (W[0]) {
+				case 's': if (WC(1,'q') && WC(2,'r') && WC(3,'t')) token->func = SQRT; else token->type = UNKNOWN; break;
+				default:  token->type = UNKNOWN; break;
+			}
+			break;
+		case 6:
+			if (strv_prefix(word, lit_to_strv("arc"))) {
+				switch (W[3]) {
+					case 'c': if (WC(4,'o') && WC(5,'s')) token->func = ACOS; else token->type = UNKNOWN; break;
+					case 's': if (WC(4,'i') && WC(5,'n')) token->func = ASIN; else token->type = UNKNOWN; break;
+					case 't': if (WC(4,'a') && WC(5,'n')) token->func = ATAN; else token->type = UNKNOWN; break;
+					default:  token->type = UNKNOWN; break;
+				}
+			}
+			break;
+		default: token->type = UNKNOWN; break;
+	}
+		// clang-format on
+
+#undef W
+#undef WC
 }
 
 token_t *tokenize(strv source, mem_arena *arena, size_t *tokens_index) {
@@ -113,10 +176,8 @@ token_t *tokenize(strv source, mem_arena *arena, size_t *tokens_index) {
 					while (isalpha(peek(source, &src_index))) consume(source, &src_index);
 					strv word = strv_sub(source, start_index, src_index);
 
-					if (peek(source, &src_index) == '(') {
-						token.type = FUNCTION;
-						token.func = strv_hash(word);
-					} else handle_constants(word, &token);
+					if (peek(source, &src_index) == '(') match_functions(word, &token);
+					else match_constants(word, &token);
 				}
 				break;
 		}
