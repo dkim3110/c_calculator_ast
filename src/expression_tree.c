@@ -131,6 +131,11 @@ double solve_tree(node_t *root, bool *is_bool, bool *failed) {
 				case '/': return left_val / right_val;
 				case '%': return fmod(left_val, right_val);
 				case '!': return tgamma(left_val + 1.0);
+
+				default:
+					fputs("INVALID INPUT\n", stderr);
+					(*failed) = true;
+					return NAN;
 			}
 			break;
 		case EXP: return pow(left_val, right_val);
