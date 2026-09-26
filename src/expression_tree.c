@@ -147,9 +147,9 @@ double solve_tree(node_t *root, bool *is_bool, bool *failed) {
 				case COS:		 return cos(right_val);
 				case TAN:		 return tan(right_val);
 
-				case CSC:		 return 1.0 / sin(right_val);
-				case SEC:		 return 1.0 / cos(right_val);
-				case COT:		 return 1.0 / tan(right_val);
+				case CSC:		 return (fabs(sin(right_val) - 0.0) <= DBL_EPSILON) ? NAN : 1.0 / sin(right_val);
+				case SEC:		 return (fabs(cos(right_val) - 0.0) <= DBL_EPSILON) ? NAN : 1.0 / cos(right_val);
+				case COT:		 return (fabs(tan(right_val) - 0.0) <= DBL_EPSILON) ? NAN : 1.0 / tan(right_val);
 
 				case SINH:	 return sinh(right_val);
 				case COSH:	 return cosh(right_val);

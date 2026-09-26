@@ -104,8 +104,8 @@ static inline void match_functions(strv word, token_t *token) {
 					switch (W[1]) {
 						case 'o':
 							switch (W[2]) {
-								case 's': token->func = SIN; break;
-								case 't': token->func = CSC; break;
+								case 's': token->func = COS; break;
+								case 't': token->func = COT; break;
 								default:  IS_UNKNOWN; break;
 							} break;
 						case 's': if (WC(2,'c')) token->func = CSC; else IS_UNKNOWN; break;
