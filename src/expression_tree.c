@@ -110,8 +110,7 @@ double solve_tree(node_t *root, bool *is_bool, bool *failed) {
 	if (!root) return NAN;
 
 	switch (root->token.type) {
-		case NUMBER:
-			/* fallthrough */
+		case NUMBER:	 /* fallthrough */
 		case CONSTANT: return root->token.num_val; break;
 		default:			 break;
 	}
@@ -120,12 +119,9 @@ double solve_tree(node_t *root, bool *is_bool, bool *failed) {
 	double right_val = (root->is_unary_postfix) ? NAN : solve_tree(root->right, is_bool, failed);
 
 	switch (root->token.type) {
-		case EQUALS:
-			/* fallthrough */
-		case ADD:
-			/* fallthrough */
-		case MULT:
-			/* fallthrough */
+		case EQUALS: /* fallthrough */
+		case ADD:		 /* fallthrough */
+		case MULT:	 /* fallthrough */
 		case FACTORIAL:
 			switch (root->token.op) {
 				case '=': (*is_bool) = true; return fabs(left_val - right_val) <= DBL_EPSILON;
@@ -153,6 +149,7 @@ double solve_tree(node_t *root, bool *is_bool, bool *failed) {
 				case HASH_ABS:		return fabs(right_val);
 				case HASH_LOG_E:	return log(right_val);
 				case HASH_LOG_10: return log10(right_val);
+
 				default:
 					fputs("INVALID INPUT\n", stderr);
 					(*failed) = true;
