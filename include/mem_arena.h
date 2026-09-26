@@ -89,6 +89,7 @@ static inline void *arena_allocation_impl(mem_arena *arena, uint64_t size, bool 
 
 	if (new_pos > arena->cap) {
 		fputs("-fatal: failed to allocate memory\n", stderr);
+		arena_destroy(arena);
 		exit(EXIT_FAILURE);
 	}
 
